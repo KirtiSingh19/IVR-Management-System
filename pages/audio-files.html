@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Audio Files · IVR Manager</title>
+    <meta name="description" content="Manage the prompt library: upload, play and remove audio files." />
+    <link rel="icon" href="../assets/icons/favicon.svg" type="image/svg+xml" />
+
+    <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="../assets/vendor/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="../assets/vendor/tailwind.css" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/audio.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+  </head>
+
+  <body data-page="audio-files">
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <div class="app-shell">
+      <div data-include="sidebar"></div>
+
+      <div class="app-content">
+        <div data-include="navbar"></div>
+
+        <main class="app-main" id="main">
+          <div class="page-header">
+            <div>
+              <nav aria-label="Breadcrumb">
+                <ol class="breadcrumb">
+                  <li class="breadcrumb-item"><a href="dashboard.html">Dashboard</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">Audio Files</li>
+                </ol>
+              </nav>
+              <h1 class="page-header__title">Audio Files</h1>
+              <p class="page-header__subtitle">
+                The prompts your IVRs can play. Listen to any of them before you assign one.
+              </p>
+            </div>
+            <div class="page-header__actions">
+              <button class="btn btn-primary" type="button" data-upload-trigger>
+                <i class="bi bi-upload" aria-hidden="true"></i>
+                Upload audio
+              </button>
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-12 col-xl-4">
+              <section class="card h-100" aria-labelledby="uploadHeading">
+                <div class="card-header">
+                  <h2 id="uploadHeading">Upload</h2>
+                </div>
+                <div class="card-body">
+                  <!-- The label wraps the file input, so clicking anywhere in
+                       the zone opens the picker and the control stays keyboard
+                       reachable without any JavaScript. -->
+                  <label class="dropzone" id="audioDropzone" for="audioInput">
+                    <span class="dropzone__icon" aria-hidden="true"><i class="bi bi-cloud-arrow-up"></i></span>
+                    <span class="dropzone__title tw-block">Drop an audio file here</span>
+                    <span class="dropzone__hint tw-block">or click to choose one &middot; WAV, MP3, OGG</span>
+                    <input
+                      class="dropzone__input"
+                      type="file"
+                      id="audioInput"
+                      accept="audio/*,.wav,.mp3,.ogg,.gsm"
+                      multiple
+                    />
+                  </label>
+
+                  <div class="tw-mt-4 tw-text-xs tw-text-muted">
+                    <p class="tw-mb-2 tw-flex tw-items-start tw-gap-2">
+                      <i class="bi bi-info-circle tw-mt-0.5" aria-hidden="true"></i>
+                      <span>
+                        Uploads are sent to the server, which stores the file on disk and its details
+                        in MySQL. Prompts survive a reload, and every IVR on this server can use
+                        them. WAV, MP3, OGG and GSM, up to 20&nbsp;MB.
+                      </span>
+                    </p>
+                  </div>
+
+                  <hr class="tw-my-4" />
+
+                  <dl class="tw-m-0 tw-text-sm">
+                    <div class="tw-flex tw-justify-between tw-py-1">
+                      <dt class="tw-text-muted tw-font-normal">Files</dt>
+                      <dd class="tw-m-0 num" data-audio-count>—</dd>
+                    </div>
+                    <div class="tw-flex tw-justify-between tw-py-1">
+                      <dt class="tw-text-muted tw-font-normal">Total size</dt>
+                      <dd class="tw-m-0 num" data-audio-size>—</dd>
+                    </div>
+                    <div class="tw-flex tw-justify-between tw-py-1">
+                      <dt class="tw-text-muted tw-font-normal">Total length</dt>
+                      <dd class="tw-m-0 num" data-audio-duration>—</dd>
+                    </div>
+                  </dl>
+                </div>
+              </section>
+            </div>
+
+            <div class="col-12 col-xl-8">
+              <section class="card table-card" aria-labelledby="audioTableHeading">
+                <h2 class="visually-hidden" id="audioTableHeading">Audio files</h2>
+
+                <div class="toolbar">
+                  <div class="toolbar__search">
+                    <label class="visually-hidden" for="audioSearch">Search audio files</label>
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    <input
+                      class="form-control"
+                      type="search"
+                      id="audioSearch"
+                      placeholder="Search by file name"
+                      autocomplete="off"
+                    />
+                  </div>
+
+                  <div class="toolbar__select">
+                    <label class="visually-hidden" for="audioFormatFilter">Filter by format</label>
+                    <select class="form-select" id="audioFormatFilter">
+                      <option value="">All formats</option>
+                      <!-- Filled from the library by js/audio.js -->
+                    </select>
+                  </div>
+
+                  <p class="toolbar__count" data-result-count aria-live="polite"></p>
+                </div>
+
+                <div class="table-scroll">
+                  <table class="table" id="audioTable">
+                    <caption class="visually-hidden">
+                      Audio files, with format, duration, size and status
+                    </caption>
+                    <thead>
+                      <tr>
+                        <th scope="col" aria-sort="none" data-sort-col="name">
+                          <button class="th-sort" type="button" data-sort="name">
+                            File Name <i class="bi bi-chevron-expand" aria-hidden="true"></i>
+                          </button>
+                        </th>
+                        <th scope="col">Format</th>
+                        <th scope="col" aria-sort="none" data-sort-col="durationSeconds">
+                          <button class="th-sort" type="button" data-sort="durationSeconds">
+                            Duration <i class="bi bi-chevron-expand" aria-hidden="true"></i>
+                          </button>
+                        </th>
+                        <th scope="col" aria-sort="none" data-sort-col="sizeBytes">
+                          <button class="th-sort" type="button" data-sort="sizeBytes">
+                            Size <i class="bi bi-chevron-expand" aria-hidden="true"></i>
+                          </button>
+                        </th>
+                        <th scope="col">Status</th>
+                        <th scope="col" class="tw-text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="audioTableBody">
+                      <!-- Rendered by js/audio.js -->
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="table-footer">
+                  <p class="table-footer__status tw-mb-0" data-page-status aria-live="polite"></p>
+                  <nav aria-label="Audio file pages">
+                    <ul class="pagination" id="audioPagination"></ul>
+                  </nav>
+                </div>
+              </section>
+
+              <!-- One playback bar for the page: only one file sounds at a
+                   time, so there is only one set of transport controls. -->
+              <div class="player" id="audioPlayer" hidden>
+                <button class="player__button" type="button" data-player-toggle aria-label="Pause">
+                  <i class="bi bi-pause-fill" aria-hidden="true"></i>
+                </button>
+                <div class="player__body">
+                  <p class="player__name" data-player-name>—</p>
+                  <div
+                    class="player__track"
+                    role="progressbar"
+                    aria-label="Playback position"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-valuenow="0"
+                    data-player-track
+                  >
+                    <div class="player__progress" data-player-progress></div>
+                  </div>
+                </div>
+                <span class="player__time" data-player-time>00:00 / 00:00</span>
+                <button
+                  class="player__button player__button--ghost"
+                  type="button"
+                  data-player-stop
+                  aria-label="Stop playback"
+                >
+                  <i class="bi bi-stop-fill" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <div data-include="footer"></div>
+      </div>
+    </div>
+
+    <div data-include="modals"></div>
+
+    <script src="../assets/vendor/bootstrap/bootstrap.bundle.min.js" defer></script>
+    <script type="module" src="../js/app.js"></script>
+  </body>
+</html>

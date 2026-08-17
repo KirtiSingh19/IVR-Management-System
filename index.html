@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>IVR Manager</title>
+    <meta name="description" content="IVR Manager — enterprise IVR administration." />
+    <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml" />
+
+    <!--
+      Entry point. Every real page lives in pages/, which keeps one relative
+      path depth across the whole app: components, CSS and JS are always one
+      level up. This file only forwards to the dashboard.
+
+      The meta refresh is the fallback for the rare case where scripting is off;
+      the script below performs the redirect immediately in every normal case.
+    -->
+    <meta http-equiv="refresh" content="0; url=pages/dashboard.html" />
+    <script>
+      window.location.replace('pages/dashboard.html');
+    </script>
+  </head>
+  <body>
+    <p style="font-family: system-ui, sans-serif; padding: 2rem">
+      Opening the <a href="pages/dashboard.html">IVR Manager dashboard</a>&hellip;
+    </p>
+  </body>
+</html>

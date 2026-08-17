@@ -1,0 +1,12 @@
+/**
+ * Tailwind source file — AUTHORING TIME ONLY.
+ *
+ * Deliberately omits @tailwind base. That directive emits Preflight, which would
+ * fight Bootstrap's Reboot. Only the utility layer is wanted here: Bootstrap owns
+ * components and base styling, Tailwind owns layout and spacing.
+ *
+ * Compiled output: ../assets/vendor/tailwind.css
+ */
+
+@tailwind components;
+@tailwind utilities;

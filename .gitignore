@@ -1,0 +1,41 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# Node is only ever used at authoring time, via npx, to regenerate
+# assets/vendor/tailwind.css. Nothing it leaves behind belongs in the repo.
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# Logs
+*.log
+
+# Backend secrets. backend/.env holds the MySQL password; .env.example is the
+# committed template and is deliberately not matched by this rule.
+.env
+.env.*
+!.env.example
+
+# Python
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+
+# Uploaded audio prompts. User data, not source — the three files the app ships
+# with live in assets/audio/ and are imported from there on first start.
+backend/uploads/
+
+# Committed on purpose, listed here so nobody adds an ignore rule for them:
+#   assets/vendor/    vendored Bootstrap, Bootstrap Icons, IBM Plex, Tailwind
+#   assets/audio/     generated demo prompts
+# Both are build outputs, but the container has no build step, so they are
+# part of the source tree.

@@ -1,0 +1,169 @@
+<!--
+  Shared dialogs. Injected into every page by app.js via [data-include="modals"]
+  so any module can open one without shipping its own copy of the markup.
+
+  Bootstrap handles focus trapping, Escape, backdrop clicks and returning focus
+  to the trigger, which is why these are Bootstrap modals rather than custom.
+-->
+
+<!-- Generic confirmation. Driven by confirmDialog() in js/app.js: the title,
+     body, button label and tone are all set before it is shown. -->
+<div
+  class="modal fade"
+  id="confirmModal"
+  tabindex="-1"
+  aria-labelledby="confirmModalTitle"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body">
+        <div class="tw-flex tw-gap-4">
+          <span class="modal-icon modal-icon--danger" data-confirm-icon aria-hidden="true">
+            <i class="bi bi-exclamation-triangle"></i>
+          </span>
+          <div>
+            <h2 class="modal-title tw-mb-1" id="confirmModalTitle" data-confirm-title>
+              Are you sure?
+            </h2>
+            <p class="tw-mb-0 tw-text-sm tw-text-muted" data-confirm-body>
+              This action cannot be undone.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-danger" data-confirm-accept>Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- IVR detail. Opened by the View action on the IVR list. -->
+<div
+  class="modal fade"
+  id="ivrDetailModal"
+  tabindex="-1"
+  aria-labelledby="ivrDetailTitle"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="ivrDetailTitle">IVR details</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" data-detail-body>
+        <!-- Filled by js/ivr.js -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        <a class="btn btn-outline-secondary" href="#" data-detail-test>
+          <i class="bi bi-telephone-outbound" aria-hidden="true"></i>
+          Test
+        </a>
+        <a class="btn btn-primary" href="#" data-detail-edit>
+          <i class="bi bi-pencil" aria-hidden="true"></i>
+          Edit IVR
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add or edit a menu option. Shared by the create and edit IVR pages. -->
+<div
+  class="modal fade"
+  id="optionModal"
+  tabindex="-1"
+  aria-labelledby="optionModalTitle"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <form class="modal-content" id="optionForm" novalidate>
+      <div class="modal-header">
+        <h2 class="modal-title" id="optionModalTitle">Add menu option</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <p class="tw-mb-4 tw-text-sm tw-text-muted">
+          Choose the key the caller presses and where the call goes when they press it.
+        </p>
+
+        <div class="mb-3">
+          <label class="form-label" for="optionDigit">Digit</label>
+          <select class="form-select" id="optionDigit" name="digit" required>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="0">0</option>
+            <option value="*">*</option>
+            <option value="#">#</option>
+          </select>
+          <div class="invalid-feedback" id="optionDigit-error"></div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="optionLabel">Label</label>
+          <input
+            class="form-control"
+            type="text"
+            id="optionLabel"
+            name="label"
+            placeholder="Sales"
+            maxlength="40"
+            required
+          />
+          <div class="form-text">What this option is called when the menu is read out.</div>
+          <div class="invalid-feedback" id="optionLabel-error"></div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="optionDestination">Destination</label>
+          <input
+            class="form-control num"
+            type="text"
+            id="optionDestination"
+            name="destination"
+            placeholder="5001"
+            inputmode="numeric"
+            maxlength="6"
+            required
+          />
+          <div class="form-text">The extension this option transfers the call to.</div>
+          <div class="invalid-feedback" id="optionDestination-error"></div>
+        </div>
+
+        <div class="mb-0">
+          <label class="form-label" for="optionAudio">Audio <span class="tw-text-muted tw-font-normal">(optional)</span></label>
+          <select class="form-select" id="optionAudio" name="audioFile" aria-describedby="optionAudio-help">
+            <!-- Filled from the audio library by js/audio-picker.js -->
+          </select>
+          <div class="form-text" id="optionAudio-help">
+            Played after the caller presses this key, while the call is transferred. Leave unset to
+            transfer in silence.
+          </div>
+          <div class="invalid-feedback" id="optionAudio-error"></div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary" data-option-submit>Add option</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toasts are appended here by toast() in js/app.js. -->
+<div class="toast-host" id="toastHost" aria-live="polite" aria-atomic="true"></div>

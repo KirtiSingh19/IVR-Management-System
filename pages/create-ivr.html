@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Create IVR · IVR Manager</title>
+    <meta name="description" content="Add a new IVR and give it an extension callers can reach." />
+    <link rel="icon" href="../assets/icons/favicon.svg" type="image/svg+xml" />
+
+    <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="../assets/vendor/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="../assets/vendor/tailwind.css" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/ivr.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+  </head>
+
+  <body data-page="create-ivr">
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <div class="app-shell">
+      <div data-include="sidebar"></div>
+
+      <div class="app-content">
+        <div data-include="navbar"></div>
+
+        <main class="app-main" id="main">
+          <div class="page-header">
+            <div>
+              <nav aria-label="Breadcrumb">
+                <ol class="breadcrumb">
+                  <li class="breadcrumb-item"><a href="dashboard.html">Dashboard</a></li>
+                  <li class="breadcrumb-item"><a href="ivr-list.html">IVR List</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">Create IVR</li>
+                </ol>
+              </nav>
+              <h1 class="page-header__title">Create IVR</h1>
+              <p class="page-header__subtitle">
+                Give the IVR a name and an extension, and add its menu options here if you already
+                know them.
+              </p>
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-12 col-xl-8">
+              <form class="card" id="ivrForm" novalidate>
+                <div class="card-body">
+                  <!-- Identity ------------------------------------------ -->
+                  <fieldset class="form-section">
+                    <legend class="form-section__title">Identity</legend>
+                    <p class="form-section__hint">How this IVR is listed, and how callers reach it.</p>
+
+                    <div class="row g-3">
+                      <div class="col-12 col-md-7">
+                        <label class="form-label" for="ivrName">IVR name</label>
+                        <input
+                          class="form-control"
+                          type="text"
+                          id="ivrName"
+                          name="name"
+                          placeholder="Main IVR"
+                          maxlength="60"
+                          autocomplete="off"
+                          required
+                          aria-describedby="ivrName-error"
+                        />
+                        <div class="invalid-feedback" id="ivrName-error"></div>
+                      </div>
+
+                      <div class="col-12 col-md-5">
+                        <label class="form-label" for="ivrExtension">Extension</label>
+                        <div class="input-group">
+                          <span class="input-group-text" id="ivrExtension-prefix">Dial</span>
+                          <input
+                            class="form-control num"
+                            type="text"
+                            id="ivrExtension"
+                            name="extension"
+                            placeholder="5000"
+                            inputmode="numeric"
+                            maxlength="6"
+                            autocomplete="off"
+                            required
+                            aria-describedby="ivrExtension-prefix ivrExtension-help ivrExtension-error"
+                          />
+                        </div>
+                        <div class="form-text" id="ivrExtension-help">
+                          3 to 6 digits, and unique across the system.
+                        </div>
+                        <div class="invalid-feedback tw-block" id="ivrExtension-error"></div>
+                      </div>
+
+                      <div class="col-12">
+                        <label class="form-label" for="ivrDescription">Description</label>
+                        <textarea
+                          class="form-control"
+                          id="ivrDescription"
+                          name="description"
+                          rows="2"
+                          maxlength="160"
+                          placeholder="Main company IVR"
+                          aria-describedby="ivrDescription-help ivrDescription-error"
+                        ></textarea>
+                        <div class="form-text" id="ivrDescription-help">
+                          Optional. Shown in the IVR list so colleagues know what this one is for.
+                        </div>
+                        <div class="invalid-feedback" id="ivrDescription-error"></div>
+                      </div>
+                    </div>
+                  </fieldset>
+
+                  <!-- Behaviour ----------------------------------------- -->
+                  <fieldset class="form-section">
+                    <legend class="form-section__title">Behaviour</legend>
+                    <p class="form-section__hint">What the caller hears, and whether the IVR answers.</p>
+
+                    <div class="row g-3">
+                      <div class="col-12 col-md-7">
+                        <label class="form-label" for="ivrWelcomeAudio">Welcome audio</label>
+                        <select
+                          class="form-select"
+                          id="ivrWelcomeAudio"
+                          name="welcomeAudio"
+                          aria-describedby="ivrWelcomeAudio-help"
+                        >
+                          <!-- Filled from the audio library by js/ivr.js -->
+                        </select>
+                        <div class="form-text" id="ivrWelcomeAudio-help">
+                          Played once, before the menu. Manage prompts on the
+                          <a href="audio-files.html">Audio Files</a> page.
+                        </div>
+                        <div class="invalid-feedback" id="ivrWelcomeAudio-error"></div>
+                      </div>
+
+                      <div class="col-12 col-md-5">
+                        <label class="form-label" for="ivrStatus">Status</label>
+                        <select class="form-select" id="ivrStatus" name="status" aria-describedby="ivrStatus-help">
+                          <option value="active">Active</option>
+                          <option value="inactive">Inactive</option>
+                        </select>
+                        <div class="form-text" id="ivrStatus-help">
+                          Inactive IVRs keep their configuration but do not answer.
+                        </div>
+                      </div>
+                    </div>
+                  </fieldset>
+
+                  <!-- Menu ---------------------------------------------- -->
+                  <fieldset class="form-section">
+                    <div class="tw-flex tw-flex-wrap tw-items-start tw-justify-between tw-gap-2">
+                      <div>
+                        <legend class="form-section__title">Menu options</legend>
+                        <p class="form-section__hint">
+                          One entry per key the caller can press. Optional — you can add these later
+                          on the edit screen.
+                        </p>
+                      </div>
+                      <button class="btn btn-outline-primary btn-sm" type="button" data-add-option>
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                        Add option
+                      </button>
+                    </div>
+
+                    <div data-draft-flow-list></div>
+                  </fieldset>
+                </div>
+
+                <div class="card-footer tw-flex tw-flex-wrap tw-justify-end tw-gap-2 tw-bg-transparent">
+                  <a class="btn btn-outline-secondary" href="ivr-list.html">Cancel</a>
+                  <button class="btn btn-primary" type="submit" data-submit>
+                    <span class="spinner-border spinner-border-sm tw-hidden" data-submit-spinner aria-hidden="true"></span>
+                    <i class="bi bi-check-lg" aria-hidden="true" data-submit-icon></i>
+                    <span data-submit-label>Create IVR</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- What happens next. Menu options are collected on this page and
+                 saved with the IVR in one request, so the two cannot come apart. -->
+            <div class="col-12 col-xl-4">
+              <aside class="card h-100" aria-labelledby="nextStepsHeading">
+                <div class="card-header">
+                  <h2 id="nextStepsHeading">What happens next</h2>
+                </div>
+                <div class="card-body">
+                  <ol class="tw-m-0 tw-pl-5 tw-text-sm tw-flex tw-flex-col tw-gap-3 tw-text-muted">
+                    <li>
+                      <span class="tw-block tw-font-medium tw-text-body">Create the IVR</span>
+                      The IVR and any menu options you added are saved together, then it appears in
+                      the list and the dashboard figures update.
+                    </li>
+                    <li>
+                      <span class="tw-block tw-font-medium tw-text-body">Refine the menu</span>
+                      You land on the edit screen, where options can be changed, added or removed.
+                    </li>
+                    <li>
+                      <span class="tw-block tw-font-medium tw-text-body">Walk a call through it</span>
+                      The Test IVR page dials your menu exactly as a caller would.
+                    </li>
+                  </ol>
+
+                  <hr class="tw-my-4" />
+
+                  <p class="tw-mb-0 tw-text-xs tw-text-muted">
+                    Nothing is sent to a switch. Records are saved to the MySQL database through the
+                    Python API, so they survive a reload and are shared by everyone using this
+                    server.
+                  </p>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </main>
+
+        <div data-include="footer"></div>
+      </div>
+    </div>
+
+    <div data-include="modals"></div>
+
+    <script src="../assets/vendor/bootstrap/bootstrap.bundle.min.js" defer></script>
+    <script type="module" src="../js/app.js"></script>
+  </body>
+</html>

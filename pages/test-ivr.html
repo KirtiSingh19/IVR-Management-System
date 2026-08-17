@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Test IVR &middot; IVR Manager</title>
+    <meta name="description" content="Walk a call through an IVR menu exactly as a caller would." />
+    <link rel="icon" href="../assets/icons/favicon.svg" type="image/svg+xml" />
+
+    <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="../assets/vendor/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="../assets/vendor/tailwind.css" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/ivr.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+  </head>
+
+  <!-- Reached as test-ivr.html, or test-ivr.html?id=<ivr id> to preselect one. -->
+  <body data-page="test-ivr">
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <div class="app-shell">
+      <div data-include="sidebar"></div>
+
+      <div class="app-content">
+        <div data-include="navbar"></div>
+
+        <main class="app-main" id="main">
+          <div class="page-header">
+            <div>
+              <nav aria-label="Breadcrumb">
+                <ol class="breadcrumb">
+                  <li class="breadcrumb-item"><a href="dashboard.html">Dashboard</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">Test IVR</li>
+                </ol>
+              </nav>
+              <h1 class="page-header__title">Test IVR</h1>
+              <p class="page-header__subtitle">
+                Dial an IVR and press keys the way a caller would. This is a simulation &mdash; no
+                real call is placed and no switch is contacted.
+              </p>
+            </div>
+            <div class="page-header__actions">
+              <label class="visually-hidden" for="testIvrSelect">Choose an IVR to test</label>
+              <select class="form-select" id="testIvrSelect">
+                <!-- Filled by js/test-ivr.js -->
+              </select>
+              <a class="btn btn-outline-secondary" href="#" data-edit-link>
+                <i class="bi bi-pencil" aria-hidden="true"></i>
+                Edit menu
+              </a>
+            </div>
+          </div>
+
+          <!-- Shown when there is no IVR to test at all. -->
+          <section class="card" data-no-ivrs hidden>
+            <div class="card-body">
+              <div class="empty-state">
+                <span class="empty-state__icon" aria-hidden="true"><i class="bi bi-telephone-x"></i></span>
+                <h2 class="empty-state__title">There is nothing to dial yet</h2>
+                <p class="empty-state__body">
+                  Create an IVR and give it a menu, then come back here to walk a call through it.
+                </p>
+                <a class="btn btn-primary" href="create-ivr.html">
+                  <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                  Create IVR
+                </a>
+              </div>
+            </div>
+          </section>
+
+          <div class="row g-3" data-test-body hidden>
+            <!-- Handset ------------------------------------------------- -->
+            <div class="col-12 col-xl-7">
+              <section class="sim-panel" aria-labelledby="simHeading">
+                <div class="sim-panel__head">
+                  <h2 class="sim-panel__title" id="simHeading">
+                    <span data-sim-ivr-name>Main IVR</span>
+                    <span class="num tw-ml-1 tw-text-xs tw-text-faint" data-sim-ivr-ext></span>
+                  </h2>
+                  <span class="sim-state" data-sim-state>
+                    <span class="sim-state__dot" aria-hidden="true"></span>
+                    <span data-sim-state-text>Idle</span>
+                  </span>
+                </div>
+
+                <!-- What the caller is hearing right now. -->
+                <div class="sim-screen" data-sim-screen role="status" aria-live="polite">
+                  <p class="sim-screen__eyebrow">Not connected</p>
+                  <p class="sim-screen__prompt">Press Call to dial this IVR.</p>
+                  <p class="sim-screen__detail">
+                    The welcome prompt plays first, then the menu is read out.
+                  </p>
+                </div>
+
+                <!-- The keypad. Every key dials: keys without a menu option
+                     behind them land on the invalid-option prompt, exactly as
+                     a real IVR would answer them. -->
+                <div class="keypad" id="keypad" role="group" aria-label="Telephone keypad">
+                  <!-- Rendered by js/test-ivr.js -->
+                </div>
+
+                <p class="keypad-hint">
+                  Your keyboard works too &mdash; press <kbd>0</kbd>&ndash;<kbd>9</kbd>,
+                  <kbd>*</kbd> or <kbd>#</kbd>
+                </p>
+
+                <div class="tw-flex tw-flex-wrap tw-gap-2 tw-border-t tw-border-ink-line tw-px-4 tw-py-3">
+                  <button class="btn btn-primary" type="button" data-call-start>
+                    <i class="bi bi-telephone-fill" aria-hidden="true"></i>
+                    Call
+                  </button>
+                  <button class="btn btn-outline-secondary" type="button" data-call-restart>
+                    <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                    Main menu
+                  </button>
+                  <button class="btn btn-danger tw-ml-auto" type="button" data-call-end>
+                    <i class="bi bi-telephone-x-fill" aria-hidden="true"></i>
+                    Hang up
+                  </button>
+                </div>
+              </section>
+            </div>
+
+            <!-- Menu + log ---------------------------------------------- -->
+            <div class="col-12 col-xl-5">
+              <section class="card" aria-labelledby="optionsHeading">
+                <div class="card-header">
+                  <div>
+                    <h2 id="optionsHeading">Menu options</h2>
+                    <p class="card-header__hint">Selecting one is the same as pressing the key</p>
+                  </div>
+                </div>
+                <div class="card-body tw-p-0">
+                  <ul class="option-list" data-option-list>
+                    <!-- Rendered by js/test-ivr.js -->
+                  </ul>
+                </div>
+              </section>
+
+              <section class="card tw-mt-3" aria-labelledby="logHeading">
+                <div class="card-header">
+                  <div>
+                    <h2 id="logHeading">Call log</h2>
+                    <p class="card-header__hint">Every prompt and key press, in order</p>
+                  </div>
+                  <button class="btn btn-outline-secondary btn-sm" type="button" data-clear-log>
+                    Clear
+                  </button>
+                </div>
+                <div class="card-body tw-p-0">
+                  <ul class="sim-log" data-sim-log>
+                    <li class="sim-log__entry">
+                      <span class="sim-log__time">--:--:--</span>
+                      <p class="sim-log__text">No call yet.</p>
+                    </li>
+                  </ul>
+                </div>
+              </section>
+            </div>
+
+            <!-- Dialplan ------------------------------------------------ -->
+            <div class="col-12">
+              <section class="card" aria-labelledby="dialplanHeading">
+                <div class="card-header">
+                  <div>
+                    <h2 id="dialplanHeading">Dialplan</h2>
+                    <p class="card-header__hint">
+                      Where each key sends the call. The branch you take is highlighted.
+                    </p>
+                  </div>
+                  <a class="btn btn-outline-secondary btn-sm" href="#" data-edit-link>
+                    <i class="bi bi-pencil" aria-hidden="true"></i>
+                    Edit menu
+                  </a>
+                </div>
+                <div class="card-body tw-p-0">
+                  <div class="dialplan" data-dialplan>
+                    <!-- Rendered by js/test-ivr.js -->
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </main>
+
+        <div data-include="footer"></div>
+      </div>
+    </div>
+
+    <div data-include="modals"></div>
+
+    <script src="../assets/vendor/bootstrap/bootstrap.bundle.min.js" defer></script>
+    <script type="module" src="../js/app.js"></script>
+  </body>
+</html>

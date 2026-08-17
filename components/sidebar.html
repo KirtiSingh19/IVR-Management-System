@@ -1,0 +1,56 @@
+<!--
+  Sidebar. Injected into every page by app.js via [data-include="sidebar"].
+
+  .offcanvas-lg is Bootstrap's responsive offcanvas: a slide-in drawer below the
+  lg breakpoint, a static column at lg and above. That gives the collapsing
+  sidebar without any custom JavaScript.
+-->
+<aside class="app-sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="appSidebar" aria-label="Main navigation">
+  <div class="offcanvas-header">
+    <span class="sidebar-brand__name">IVR Manager</span>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#appSidebar"
+      aria-label="Close navigation"></button>
+  </div>
+
+  <a class="sidebar-brand" href="dashboard.html">
+    <span class="sidebar-brand__mark" aria-hidden="true"><i class="bi bi-diagram-3-fill"></i></span>
+    <span>
+      <span class="sidebar-brand__name">IVR Manager</span>
+
+    </span>
+  </a>
+
+  <nav class="sidebar-nav" aria-label="Sections">
+    <p class="sidebar-nav__label">Manage</p>
+    <a class="sidebar-link" href="dashboard.html" data-nav="dashboard">
+      <i class="bi bi-grid-1x2" aria-hidden="true"></i>
+      <span>Dashboard</span>
+    </a>
+    <a class="sidebar-link" href="ivr-list.html" data-nav="ivr-list">
+      <i class="bi bi-list-ul" aria-hidden="true"></i>
+      <span>IVR List</span>
+    </a>
+    <a class="sidebar-link" href="create-ivr.html" data-nav="create-ivr">
+      <i class="bi bi-plus-square" aria-hidden="true"></i>
+      <span>Create IVR</span>
+    </a>
+    <a class="sidebar-link" href="audio-files.html" data-nav="audio-files">
+      <i class="bi bi-file-earmark-music" aria-hidden="true"></i>
+      <span>Audio Files</span>
+    </a>
+
+    <p class="sidebar-nav__label">Simulate</p>
+    <a class="sidebar-link" href="test-ivr.html" data-nav="test-ivr">
+      <i class="bi bi-telephone-outbound" aria-hidden="true"></i>
+      <span>Test IVR</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="tw-flex tw-items-center tw-justify-between tw-gap-2">
+      <span>Connected to MySQL</span>
+      <span class="num">v0.2.0</span>
+    </div>
+    <p class="tw-mt-1 tw-mb-0" data-storage-note>Served by the Python API.</p>
+  </div>
+</aside>

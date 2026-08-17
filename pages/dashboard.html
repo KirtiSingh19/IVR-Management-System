@@ -1,0 +1,273 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard &middot; IVR Manager</title>
+    <meta name="description" content="Overview of every IVR, its status, and the audio library." />
+    <link rel="icon" href="../assets/icons/favicon.svg" type="image/svg+xml" />
+
+    <!-- Stylesheet order is fixed across every page. See css/style.css. -->
+    <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="../assets/vendor/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="../assets/vendor/tailwind.css" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/dashboard.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+  </head>
+
+  <body data-page="dashboard">
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <div class="app-shell">
+      <div data-include="sidebar"></div>
+
+      <div class="app-content">
+        <div data-include="navbar"></div>
+
+        <main class="app-main" id="main">
+          <div class="page-header">
+            <div>
+              <nav aria-label="Breadcrumb">
+                <ol class="breadcrumb">
+                  <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+                </ol>
+              </nav>
+              <h1 class="page-header__title">Dashboard</h1>
+              <p class="page-header__subtitle">
+                Every IVR on this system, what state it is in, and the prompts it can play.
+              </p>
+            </div>
+            <div class="page-header__actions">
+              <a class="btn btn-outline-secondary" href="test-ivr.html">
+                <i class="bi bi-telephone-outbound" aria-hidden="true"></i>
+                Test IVR
+              </a>
+              <a class="btn btn-primary" href="create-ivr.html">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                Create IVR
+              </a>
+            </div>
+          </div>
+
+          <!-- Statistics ------------------------------------------------- -->
+          <section aria-labelledby="statsHeading">
+            <h2 class="visually-hidden" id="statsHeading">Key figures</h2>
+            <div class="row g-3">
+              <div class="col-6 col-xl-3">
+                <div class="stat-card">
+                  <div class="stat-card__head">
+                    <p class="stat-card__label">Total IVRs</p>
+                    <span class="stat-card__icon stat-card__icon--signal" aria-hidden="true">
+                      <i class="bi bi-diagram-3"></i>
+                    </span>
+                  </div>
+                  <p class="stat-card__value" data-stat="total">
+                    <span class="skeleton skeleton--lg skeleton--num"></span>
+                  </p>
+                  <p class="stat-card__foot" data-stat-foot="total">Across the whole system</p>
+                </div>
+              </div>
+
+              <div class="col-6 col-xl-3">
+                <div class="stat-card">
+                  <div class="stat-card__head">
+                    <p class="stat-card__label">Active IVRs</p>
+                    <span class="stat-card__icon stat-card__icon--ok" aria-hidden="true">
+                      <i class="bi bi-broadcast-pin"></i>
+                    </span>
+                  </div>
+                  <p class="stat-card__value" data-stat="active">
+                    <span class="skeleton skeleton--lg skeleton--num"></span>
+                  </p>
+                  <p class="stat-card__foot" data-stat-foot="active">Answering calls</p>
+                </div>
+              </div>
+
+              <div class="col-6 col-xl-3">
+                <div class="stat-card">
+                  <div class="stat-card__head">
+                    <p class="stat-card__label">Inactive IVRs</p>
+                    <span class="stat-card__icon stat-card__icon--neutral" aria-hidden="true">
+                      <i class="bi bi-pause-circle"></i>
+                    </span>
+                  </div>
+                  <p class="stat-card__value" data-stat="inactive">
+                    <span class="skeleton skeleton--lg skeleton--num"></span>
+                  </p>
+                  <p class="stat-card__foot" data-stat-foot="inactive">Configured but not live</p>
+                </div>
+              </div>
+
+              <div class="col-6 col-xl-3">
+                <div class="stat-card">
+                  <div class="stat-card__head">
+                    <p class="stat-card__label">Audio Files</p>
+                    <span class="stat-card__icon stat-card__icon--warn" aria-hidden="true">
+                      <i class="bi bi-music-note-beamed"></i>
+                    </span>
+                  </div>
+                  <p class="stat-card__value" data-stat="audio">
+                    <span class="skeleton skeleton--lg skeleton--num"></span>
+                  </p>
+                  <p class="stat-card__foot" data-stat-foot="audio">In the prompt library</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Asterisk link ---------------------------------------------
+               Read-only. The page asks the Python API, which holds the AMI
+               credentials; the browser never contacts the PBX itself. -->
+          <section class="card tw-mt-3" aria-labelledby="asteriskHeading">
+            <div class="card-header">
+              <div>
+                <h2 id="asteriskHeading">Asterisk server</h2>
+                <p class="card-header__hint">Read-only link to the PBX</p>
+              </div>
+              <button class="btn btn-outline-secondary btn-sm" type="button" data-asterisk-refresh>
+                <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+                Refresh status
+              </button>
+            </div>
+            <div class="card-body">
+              <dl class="asterisk-facts">
+                <div>
+                  <dt>Asterisk status</dt>
+                  <dd data-asterisk-status>
+                    <span class="skeleton"></span>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Server</dt>
+                  <dd class="num" data-asterisk-host>—</dd>
+                </div>
+                <div>
+                  <dt>AMI port</dt>
+                  <dd class="num" data-asterisk-port>—</dd>
+                </div>
+                <div>
+                  <dt>Extensions</dt>
+                  <dd data-asterisk-extension-count>—</dd>
+                </div>
+              </dl>
+
+              <p class="tw-mt-3 tw-mb-0 tw-text-xs tw-text-muted" data-asterisk-message></p>
+
+              <div class="tw-mt-3" data-asterisk-extensions hidden></div>
+            </div>
+          </section>
+
+          <!-- Recent IVRs + quick actions ------------------------------- -->
+          <div class="row g-3 tw-mt-1">
+            <div class="col-12 col-lg-8">
+              <section class="card h-100" aria-labelledby="recentIvrsHeading">
+                <div class="card-header">
+                  <div>
+                    <h2 id="recentIvrsHeading">Recent IVRs</h2>
+                    <p class="card-header__hint">The five most recently changed</p>
+                  </div>
+                  <a class="btn btn-outline-secondary btn-sm" href="ivr-list.html">
+                    View all
+                    <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                  </a>
+                </div>
+                <div class="card-body tw-p-0">
+                  <ul class="recent-list" data-recent-ivrs>
+                    <li class="tw-px-5 tw-py-4">
+                      <span class="skeleton skeleton--wide"></span>
+                    </li>
+                  </ul>
+                </div>
+              </section>
+            </div>
+
+            <div class="col-12 col-lg-4">
+              <section class="card h-100" aria-labelledby="quickActionsHeading">
+                <div class="card-header">
+                  <h2 id="quickActionsHeading">Quick actions</h2>
+                </div>
+                <div class="card-body tw-flex tw-flex-col tw-gap-2">
+                  <a class="quick-action" href="create-ivr.html">
+                    <span class="quick-action__icon" aria-hidden="true"><i class="bi bi-plus-lg"></i></span>
+                    <span>
+                      <span class="quick-action__title">Create IVR</span>
+                      <span class="quick-action__hint">Name it and give it an extension</span>
+                    </span>
+                    <i class="bi bi-chevron-right quick-action__chevron" aria-hidden="true"></i>
+                  </a>
+
+                  <a class="quick-action" href="audio-files.html?upload=1">
+                    <span class="quick-action__icon" aria-hidden="true"><i class="bi bi-upload"></i></span>
+                    <span>
+                      <span class="quick-action__title">Upload audio</span>
+                      <span class="quick-action__hint">Add a prompt to the library</span>
+                    </span>
+                    <i class="bi bi-chevron-right quick-action__chevron" aria-hidden="true"></i>
+                  </a>
+
+                  <a class="quick-action" href="test-ivr.html">
+                    <span class="quick-action__icon" aria-hidden="true">
+                      <i class="bi bi-telephone-outbound"></i>
+                    </span>
+                    <span>
+                      <span class="quick-action__title">Test IVR</span>
+                      <span class="quick-action__hint">Walk a call through the menu</span>
+                    </span>
+                    <i class="bi bi-chevron-right quick-action__chevron" aria-hidden="true"></i>
+                  </a>
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <!-- Status overview + recent audio ---------------------------- -->
+          <div class="row g-3 tw-mt-1">
+            <div class="col-12 col-lg-4">
+              <section class="card h-100" aria-labelledby="statusHeading">
+                <div class="card-header">
+                  <div>
+                    <h2 id="statusHeading">IVR status overview</h2>
+                    <p class="card-header__hint">Share of IVRs answering calls</p>
+                  </div>
+                </div>
+                <div class="card-body" data-status-overview>
+                  <span class="skeleton skeleton--wide"></span>
+                </div>
+              </section>
+            </div>
+
+            <div class="col-12 col-lg-8">
+              <section class="card h-100" aria-labelledby="recentAudioHeading">
+                <div class="card-header">
+                  <div>
+                    <h2 id="recentAudioHeading">Recent audio files</h2>
+                    <p class="card-header__hint">The newest prompts in the library</p>
+                  </div>
+                  <a class="btn btn-outline-secondary btn-sm" href="audio-files.html">
+                    Manage audio
+                    <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                  </a>
+                </div>
+                <div class="card-body tw-p-0">
+                  <ul class="recent-list" data-recent-audio>
+                    <li class="tw-px-5 tw-py-4">
+                      <span class="skeleton skeleton--wide"></span>
+                    </li>
+                  </ul>
+                </div>
+              </section>
+            </div>
+          </div>
+        </main>
+
+        <div data-include="footer"></div>
+      </div>
+    </div>
+
+    <div data-include="modals"></div>
+
+    <script src="../assets/vendor/bootstrap/bootstrap.bundle.min.js" defer></script>
+    <script type="module" src="../js/app.js"></script>
+  </body>
+</html>

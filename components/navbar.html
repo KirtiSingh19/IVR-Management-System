@@ -1,0 +1,19 @@
+<!--
+  Top bar. Injected into every page by app.js via [data-include="navbar"].
+  Holds the sidebar toggle, a global IVR search, the environment pill, and the
+  user menu.
+-->
+<header class="app-topbar">
+  <button class="topbar-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#appSidebar"
+    aria-controls="appSidebar" aria-label="Open navigation">
+    <i class="bi bi-list" aria-hidden="true"></i>
+  </button>
+
+  <!-- Submits to the IVR list with the term applied, rather than filtering in
+       place, so the result is a shareable URL. -->
+  <form class="topbar-search" role="search" action="ivr-list.html" method="get">
+    <label class="visually-hidden" for="globalSearch">Search IVRs</label>
+    <i class="bi bi-search" aria-hidden="true"></i>
+    <input class="form-control" type="search" id="globalSearch" name="search"
+      placeholder="Search IVRs by name or extension" autocomplete="off" />
+  </form>
