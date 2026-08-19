@@ -102,6 +102,63 @@ CREATE TABLE IF NOT EXISTS audio_files (
 """
 
 
+# No password is stored here, only a scrypt digest — see auth.py.
+CREATE_USERS = """
+CREATE TABLE IF NOT EXISTS users (
+  id            INT          NOT NULL AUTO_INCREMENT,
+  username      VARCHAR(64)  NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at    TIMESTAMP        NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_users_username (username)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+"""
+
+# Recordings of browser calls. The audio is captured in the page and uploaded, so
+# the file lives on this machine beside the audio prompts rather than on the PBX —
+# see services/recorder.js for why.
+CREATE_RECORDINGS = """
+CREATE TABLE IF NOT EXISTS recordings (
+  id               INT          NOT NULL AUTO_INCREMENT,
+  user_id          INT              NULL,
+  stored_name      VARCHAR(255) NOT NULL,
+  from_extension   VARCHAR(32)  NOT NULL,
+  to_extension     VARCHAR(32)  NOT NULL,
+  direction        ENUM('outbound','inbound') NOT NULL DEFAULT 'outbound',
+  started_at       DATETIME     NOT NULL,
+  duration_seconds INT          NOT NULL DEFAULT 0,
+  size_bytes       BIGINT       NOT NULL DEFAULT 0,
+  mime_type        VARCHAR(80)  NOT NULL,
+  created_at       TIMESTAMP        NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_recordings_stored_name (stored_name),
+  KEY ix_recordings_started (started_at),
+  -- ON DELETE SET NULL, not CASCADE: removing an account must not silently
+  -- destroy the call history that account produced.
+  CONSTRAINT fk_recordings_user
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+"""
+
+# token_hash, not the token: a leak of this table must not yield usable cookies.
+# ON DELETE CASCADE means removing an account signs it out everywhere at once,
+# rather than leaving live sessions pointing at a user that no longer exists.
+CREATE_SESSIONS = """
+CREATE TABLE IF NOT EXISTS sessions (
+  id         INT         NOT NULL AUTO_INCREMENT,
+  user_id    INT         NOT NULL,
+  token_hash CHAR(64)    NOT NULL,
+  created_at TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP,
+  expires_at DATETIME    NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_sessions_token (token_hash),
+  KEY ix_sessions_expiry (expires_at),
+  CONSTRAINT fk_sessions_user
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+"""
+
+
 def _column_exists(cursor, table, column):
     cursor.execute(
         """
@@ -159,6 +216,36 @@ def init_schema():
         cursor.execute(CREATE_AUDIO_FILES)
         if not audio_existed:
             changes.append("created audio_files")
+
+        # users before sessions: the foreign key needs its target to exist.
+        cursor.execute("SHOW TABLES LIKE 'users'")
+        users_existed = cursor.fetchone() is not None
+        cursor.execute(CREATE_USERS)
+        if not users_existed:
+            changes.append("created users")
+
+        # Roles arrived after users did, so the column may be missing.
+        if not _column_exists(cursor, "users", "role"):
+            cursor.execute(
+                "ALTER TABLE users ADD COLUMN role ENUM('admin','user') NOT NULL DEFAULT 'user'"
+            )
+            # Anyone who already had an account predates roles and would otherwise
+            # be locked out of a page that did not exist when they signed up — and
+            # with no admin, nobody could promote anybody.
+            cursor.execute("UPDATE users SET role = 'admin'")
+            changes.append("added users.role (existing accounts promoted to admin)")
+
+        cursor.execute("SHOW TABLES LIKE 'sessions'")
+        sessions_existed = cursor.fetchone() is not None
+        cursor.execute(CREATE_SESSIONS)
+        if not sessions_existed:
+            changes.append("created sessions")
+
+        cursor.execute("SHOW TABLES LIKE 'recordings'")
+        recordings_existed = cursor.fetchone() is not None
+        cursor.execute(CREATE_RECORDINGS)
+        if not recordings_existed:
+            changes.append("created recordings")
 
         connection.commit()
         cursor.close()

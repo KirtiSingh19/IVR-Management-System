@@ -25,6 +25,7 @@ Run it with:  python server.py
 import json
 import re
 import traceback
+from http.cookies import CookieError, SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, unquote
 
@@ -32,8 +33,18 @@ import mysql.connector
 
 import asterisk_ami
 import audio_store
+import auth
 import models
-from config import API_HOST, API_PORT, CORS_ORIGIN, ENV_FILE_FOUND, MAX_AUDIO_BYTES, MYSQL
+import recordings
+from config import (
+    API_HOST,
+    API_PORT,
+    CORS_ORIGIN,
+    ENV_FILE_FOUND,
+    MAX_AUDIO_BYTES,
+    MYSQL,
+    SESSION_COOKIE_SECURE,
+)
 from database import init_schema
 from validators import (
     NotFoundError,
@@ -43,6 +54,10 @@ from validators import (
     clean_update,
 )
 
+class PermissionDenied(Exception):
+    """Signed in, but not allowed. Distinct from 401, which means "sign in"."""
+
+
 # One IVR, addressed by its numeric primary key. Anchored at both ends so
 # /api/ivrs/1/extra is a 404 rather than a silent match on "1".
 IVR_DETAIL = re.compile(r"^/api/ivrs/(\d+)$")
@@ -51,6 +66,9 @@ IVR_SYNC = re.compile(r"^/api/asterisk/ivrs/(\d+)/sync$")
 
 AUDIO_DETAIL = re.compile(r"^/api/audio/(\d+)$")
 AUDIO_BYTES = re.compile(r"^/api/audio/(\d+)/file$")
+
+RECORDING_DETAIL = re.compile(r"^/api/recordings/(\d+)$")
+RECORDING_BYTES = re.compile(r"^/api/recordings/(\d+)/file$")
 
 # "bytes=0-1023", "bytes=1024-" and "bytes=-512" are the forms a media element
 # actually sends while seeking.
@@ -68,6 +86,9 @@ class IVRHandler(BaseHTTPRequestHandler):
     # calls a page load makes. Safe because ThreadingHTTPServer handles requests
     # concurrently and every response below sets an accurate Content-Length.
     protocol_version = "HTTP/1.1"
+
+    #: Set by _dispatch once a request is authenticated.
+    current_user = None
     server_version = "IVRManager/1.0"
 
     # ---------------------------------------------------------------- responses
@@ -196,17 +217,66 @@ class IVRHandler(BaseHTTPRequestHandler):
     def do_DELETE(self):
         self._dispatch(self._route_delete)
 
+    # -------------------------------------------------------------------- auth
+
+    def _session_token(self):
+        """The session cookie, or None."""
+        raw = self.headers.get("Cookie")
+        if not raw:
+            return None
+        jar = SimpleCookie()
+        try:
+            jar.load(raw)
+        except CookieError:
+            return None
+        morsel = jar.get(auth.COOKIE_NAME)
+        return morsel.value if morsel else None
+
+    def _require_admin(self):
+        """
+        Guard the recordings.
+
+        Enforced here rather than by hiding the nav item: a hidden link is a
+        courtesy, not a control, and the URL is guessable. Raises so callers
+        cannot forget to check the return value.
+        """
+        if (self.current_user or {}).get("role") != "admin":
+            raise PermissionDenied("Only administrators can access call recordings.")
+
+    def _is_public(self, path):
+        """
+        The only routes reachable without a session.
+
+        Deliberately a tiny allowlist rather than a denylist: a route added later
+        is protected by default, which is the failure mode you want. Everything
+        else — including the Asterisk sync, which writes to the PBX — needs a
+        session.
+        """
+        return path == "/" or (self.command == "POST" and path == "/api/auth/login")
+
     def _dispatch(self, route):
         """
         Run a route and turn whatever it raises into the right status code.
 
         Every handler funnels through here so the mapping from exception to
-        status exists once. An unexpected exception is logged in full on the
-        server and reported as a flat 500 to the client — a stack trace in an
-        HTTP response tells an attacker about your schema.
+        status exists once, and so does the authentication check — a guard that
+        each route had to remember to call would eventually be forgotten by one
+        of them.
+
+        An unexpected exception is logged in full on the server and reported as a
+        flat 500 to the client — a stack trace in an HTTP response tells an
+        attacker about your schema.
         """
         try:
+            path = self._path()
+            if not self._is_public(path):
+                self.current_user = auth.session_user(self._session_token())
+                if not self.current_user:
+                    self.send_error_json("Sign in to continue.", 401)
+                    return
             route()
+        except PermissionDenied as error:
+            self.send_error_json(str(error), 403)
         except ValidationError as error:
             self.send_error_json(error.message, 400, error.field)
         except NotFoundError as error:
@@ -221,11 +291,39 @@ class IVRHandler(BaseHTTPRequestHandler):
             traceback.print_exc()
             self.send_error_json("Something went wrong on the server.", 500)
 
+    def send_session_cookie(self, token, max_age):
+        """
+        Issue or clear the session cookie.
+
+        HttpOnly so no script can read the token — that is the whole reason for
+        using a cookie rather than a bearer token in localStorage. SameSite=Lax
+        blocks it from riding along on cross-site requests.
+
+        `Secure` is added only when configured, because it would stop the cookie
+        working over plain http on 127.0.0.1, which is how this runs today. Turn
+        SESSION_COOKIE_SECURE on the moment the app is served over HTTPS.
+        """
+        parts = [
+            f"{auth.COOKIE_NAME}={token}",
+            "Path=/",
+            "HttpOnly",
+            "SameSite=Lax",
+            f"Max-Age={max_age}",
+        ]
+        if SESSION_COOKIE_SECURE:
+            parts.append("Secure")
+        self.send_header("Set-Cookie", "; ".join(parts))
+
     def _route_get(self):
         path = self._path()
 
         if path == "/":
             self.send_json({"message": "IVR Manager API is running"})
+            return
+
+        if path == "/api/auth/me":
+            # Reached only with a valid session, so saying who it is costs nothing.
+            self.send_json({"authenticated": True, **{k: self.current_user[k] for k in ("username", "role")}})
             return
 
         if path == "/api/ivrs":
@@ -241,6 +339,17 @@ class IVRHandler(BaseHTTPRequestHandler):
         # the request, and the dashboard needs to render that state rather than
         # treat it as an error. Both helpers swallow their own faults, so an
         # unreachable switch can never take the website with it.
+        if path == "/api/recordings":
+            self._require_admin()
+            self.send_json({"recordings": recordings.listing()})
+            return
+
+        match = RECORDING_BYTES.match(path)
+        if match:
+            self._require_admin()
+            self._serve_recording(int(match.group(1)))
+            return
+
         if path == "/api/asterisk/status":
             self.send_json(asterisk_ami.status())
             return
@@ -272,6 +381,46 @@ class IVRHandler(BaseHTTPRequestHandler):
 
         if path == "/api/audio":
             self._receive_audio_upload()
+            return
+
+        if path == "/api/recordings":
+            # Uploading is not admin-only: the phone records for whoever is on the
+            # call. Only listening back to other people's calls is restricted.
+            self._receive_recording()
+            return
+
+        if path == "/api/auth/login":
+            payload = self.read_json_body()
+            try:
+                session = auth.login(payload.get("username"), payload.get("password"))
+            except auth.AuthError as error:
+                # 401 with one generic message: which half was wrong is not
+                # something an attacker should be able to learn from the response.
+                self.send_error_json(str(error), 401)
+                return
+
+            body = json.dumps({"authenticated": True, "username": session["username"], "role": session["role"]}).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_session_cookie(session["token"], auth.SESSION_HOURS * 3600)
+            self._cors_headers()
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        if path == "/api/auth/logout":
+            # The server forgets the session; the empty cookie makes the browser
+            # forget it too, so a stale value cannot be replayed.
+            auth.logout(self._session_token())
+            body = json.dumps({"authenticated": False}).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_session_cookie("", 0)
+            self._cors_headers()
+            self.end_headers()
+            self.wfile.write(body)
             return
 
         match = IVR_SYNC.match(path)
@@ -327,6 +476,12 @@ class IVRHandler(BaseHTTPRequestHandler):
             self.send_json(models.delete_audio(int(match.group(1))))
             return
 
+        match = RECORDING_DETAIL.match(path)
+        if match:
+            self._require_admin()
+            self.send_json(recordings.remove(int(match.group(1))))
+            return
+
         self._not_found()
 
     # -------------------------------------------------------------------- audio
@@ -351,6 +506,35 @@ class IVRHandler(BaseHTTPRequestHandler):
 
         self.send_json(models.create_audio(meta, data), 201)
 
+    def _receive_recording(self):
+        """
+        POST /api/recordings — the recording's bytes as the body, metadata in
+        headers, matching how audio prompts are uploaded.
+        """
+        meta = recordings.clean_upload(
+            {
+                "mime_type": self.headers.get("X-Recording-Mime") or "",
+                "from_extension": unquote(self.headers.get("X-Recording-From") or ""),
+                "to_extension": unquote(self.headers.get("X-Recording-To") or ""),
+                "direction": self.headers.get("X-Recording-Direction") or "outbound",
+                "duration_seconds": self.headers.get("X-Recording-Duration") or 0,
+                "started_at": self.headers.get("X-Recording-Started") or "",
+            }
+        )
+        data = self.read_binary_body(recordings.MAX_RECORDING_BYTES)
+        self.send_json(recordings.create(meta, data, (self.current_user or {}).get("id")), 201)
+
+    def _serve_recording(self, recording_id):
+        """Stream a recording, with Range support so the player can seek."""
+        row = recordings.raw(recording_id)
+        try:
+            path = recordings.path_for(row["stored_name"])
+        except ValueError:
+            raise NotFoundError("That recording is not available.")
+        if not path.is_file():
+            raise NotFoundError("That recording is missing from the server.")
+        self._serve_file(path, row["mime_type"])
+
     def _serve_audio_bytes(self, audio_id):
         """
         GET /api/audio/<id>/file — the audio itself.
@@ -370,7 +554,17 @@ class IVRHandler(BaseHTTPRequestHandler):
             # zero bytes would look like a corrupt file instead of a missing one.
             raise NotFoundError("That audio file is missing from the server.")
 
-        content_type = audio_store.content_type_for(row["format"])
+        self._serve_file(path, audio_store.content_type_for(row["format"]))
+
+    def _serve_file(self, path, content_type):
+        """
+        Send a file, honouring Range.
+
+        Shared by audio prompts and call recordings because both are played by an
+        <audio> element, and both need 206 responses for the seek bar to work —
+        without them the browser must download the whole file before it can jump,
+        which on a long recording feels broken.
+        """
         total = path.stat().st_size
         requested = self.headers.get("Range")
 

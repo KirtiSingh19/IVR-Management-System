@@ -79,6 +79,11 @@ API_PORT = _int_env("API_PORT", 5000)
 
 CORS_ORIGIN = os.environ.get("CORS_ORIGIN", "*")
 
+# Add `Secure` to the session cookie. Off by default because the app runs over
+# plain http on 127.0.0.1 and a Secure cookie would simply never be sent there —
+# turn it on the moment anything is served over HTTPS.
+SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", "").strip().lower() in ("1", "true", "yes")
+
 # ---------------------------------------------------------------------------
 # Asterisk AMI
 # ---------------------------------------------------------------------------

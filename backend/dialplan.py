@@ -226,6 +226,19 @@ def build(ivrs):
         menu = ivr.get("menu") or []
         if menu:
             entry_lines.append(("exten", f"{extension},n,Read({READ_ARGS})"))
+            # Read() leaves IVRDIGIT empty when the caller presses nothing within
+            # the timeout. Going straight to Goto() then produced
+            # `Goto(context,,1)` — an empty extension, which Asterisk rejects. The
+            # Goto failed, execution fell through to the Hangup() below, and the
+            # `t` handler waiting in the menu context was never reached, so a
+            # caller who hesitated was simply cut off with nothing in the log to
+            # say why. Route the empty case there explicitly.
+            entry_lines.append(
+                (
+                    "exten",
+                    f'{extension},n,GotoIf($["${{IVRDIGIT}}" = ""]?{menu_context},t,1)',
+                )
+            )
             entry_lines.append(
                 ("exten", f"{extension},n,Goto({menu_context},${{IVRDIGIT}},1)")
             )

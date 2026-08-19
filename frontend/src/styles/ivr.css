@@ -1,0 +1,626 @@
+/* ==========================================================================
+   IVR Manager — IVR pages
+   Covers the list detail drawer, the flow builder, and the Test IVR page
+   (dialplan tree, DTMF keypad, call simulator).
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. IVR identity cell in the list
+   -------------------------------------------------------------------------- */
+
+.ivr-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+}
+.ivr-cell__mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--ivr-signal-tint);
+  color: var(--ivr-signal);
+  display: grid;
+  place-items: center;
+  font-size: 0.9rem;
+  flex: 0 0 auto;
+}
+.ivr-cell__body {
+  min-width: 0;
+}
+.ivr-cell__name {
+  font-weight: 500;
+  display: block;
+  color: var(--ivr-text);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+a.ivr-cell__name:hover {
+  color: var(--ivr-signal);
+}
+.ivr-cell__id {
+  font-family: var(--ivr-font-mono);
+  font-size: 0.7rem;
+  color: var(--ivr-text-faint);
+}
+
+/* --------------------------------------------------------------------------
+   2. Detail drawer (View action on the list)
+   -------------------------------------------------------------------------- */
+
+.detail-list {
+  margin: 0;
+  display: grid;
+  grid-template-columns: minmax(7rem, auto) 1fr;
+  gap: 0.75rem 1rem;
+  font-size: 0.875rem;
+}
+.detail-list dt {
+  color: var(--ivr-text-muted);
+  font-weight: 400;
+}
+.detail-list dd {
+  margin: 0;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+/* --------------------------------------------------------------------------
+   3. Flow builder
+   One row per menu option: the digit the caller presses, what it is called,
+   and where the call goes.
+   -------------------------------------------------------------------------- */
+
+.flow-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.flow-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--ivr-line);
+  border-radius: var(--ivr-radius);
+  background: var(--ivr-surface);
+  transition: border-color var(--ivr-transition), box-shadow var(--ivr-transition);
+}
+.flow-row:hover {
+  border-color: #d3dbe6;
+  box-shadow: var(--ivr-shadow-card);
+}
+
+/* The digit is the primary key of a menu option, so it is rendered as a key. */
+.flow-row__digit {
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  background: var(--ivr-ink);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-family: var(--ivr-font-mono);
+  font-size: 1.05rem;
+  font-weight: 500;
+  flex: 0 0 auto;
+}
+
+.flow-row__body {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.flow-row__label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.flow-row__dest {
+  font-size: 0.75rem;
+  color: var(--ivr-text-muted);
+  margin: 0.1rem 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  /* Wraps rather than overflows: the destination and the prompt file name
+     together are easily wider than a narrow column, and a long uploaded file
+     name should push onto its own line instead of clipping. */
+  flex-wrap: wrap;
+}
+
+/* The prompt played while this option transfers. Set apart from the destination
+   so the row still reads as "goes here" first, "and sounds like this" second. */
+.flow-row__audio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding-left: 0.35rem;
+  border-left: 1px solid var(--ivr-border, rgba(0, 0, 0, 0.12));
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.flow-row__actions {
+  display: flex;
+  gap: 0.15rem;
+  flex: 0 0 auto;
+}
+
+/* --------------------------------------------------------------------------
+   4. Dialplan tree
+   Connectors are drawn with pseudo-elements rather than SVG so they reflow
+   with the nodes. The row is horizontally scrollable when it outgrows the card.
+   -------------------------------------------------------------------------- */
+
+.dialplan {
+  --dialplan-gap: 1.25rem;
+  --dialplan-drop: 2rem;
+  --dialplan-line: #cbd5e1;
+  padding: 1.5rem 1.15rem 1.75rem;
+  overflow-x: auto;
+}
+
+.dialplan__canvas {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 100%;
+}
+
+/* Root node plus the trunk dropping out of it. */
+.dialplan__root {
+  position: relative;
+  padding-bottom: var(--dialplan-drop);
+}
+.dialplan__root::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: var(--dialplan-drop);
+  background: var(--dialplan-line);
+}
+
+.dialplan__branches {
+  display: flex;
+  gap: var(--dialplan-gap);
+  align-items: flex-start;
+}
+
+.dialplan__branch {
+  position: relative;
+  padding-top: var(--dialplan-drop);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+/* Vertical stub from the horizontal bar down into each node. */
+.dialplan__branch::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: var(--dialplan-drop);
+  background: var(--dialplan-line);
+}
+
+/* Horizontal bar, extended halfway into the gap on both sides so adjacent
+   branches meet. Trimmed at the ends so the bar stops at the outer nodes. */
+.dialplan__branch::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: calc(var(--dialplan-gap) / -2);
+  right: calc(var(--dialplan-gap) / -2);
+  height: 2px;
+  background: var(--dialplan-line);
+}
+.dialplan__branch:first-child::after {
+  left: 50%;
+}
+.dialplan__branch:last-child::after {
+  right: 50%;
+}
+.dialplan__branch:only-child::after {
+  display: none;
+}
+
+/* Node */
+.dp-node {
+  background: var(--ivr-surface);
+  border: 1px solid var(--ivr-line);
+  border-radius: var(--ivr-radius);
+  box-shadow: var(--ivr-shadow-card);
+  padding: 0.7rem 0.85rem;
+  min-width: 132px;
+  text-align: center;
+  transition: border-color var(--ivr-transition), box-shadow var(--ivr-transition),
+    background-color var(--ivr-transition);
+}
+
+.dp-node--root {
+  background: var(--ivr-ink);
+  border-color: var(--ivr-ink);
+  min-width: 170px;
+}
+.dp-node--root .dp-node__name {
+  color: #fff;
+}
+.dp-node--root .dp-node__ext {
+  color: var(--ivr-sidebar-text);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+/* The branch the caller has taken, in the reserved live colour. */
+.dp-node.is-selected {
+  border-color: var(--ivr-live);
+  box-shadow: 0 0 0 3px rgba(224, 138, 0, 0.16);
+  background: var(--ivr-live-tint);
+}
+
+.dp-node__digit {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--ivr-neutral-bg);
+  border: 1px solid var(--ivr-neutral-line);
+  color: var(--ivr-text);
+  font-family: var(--ivr-font-mono);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+}
+.dp-node.is-selected .dp-node__digit {
+  background: var(--ivr-live);
+  border-color: var(--ivr-live);
+  color: #fff;
+}
+
+.dp-node__name {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  margin: 0 0 0.35rem;
+  color: var(--ivr-text);
+}
+
+.dp-node__ext {
+  font-family: var(--ivr-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.75rem;
+  color: var(--ivr-text-muted);
+  background: var(--ivr-surface-sunken);
+  border: 1px solid var(--ivr-line);
+  border-radius: 5px;
+  padding: 0.1rem 0.4rem;
+  display: inline-block;
+}
+
+/* --------------------------------------------------------------------------
+   5. Call simulator
+   -------------------------------------------------------------------------- */
+
+.sim-panel {
+  background: var(--ivr-ink);
+  border-radius: var(--ivr-radius-lg);
+  color: var(--ivr-sidebar-text);
+  overflow: hidden;
+}
+
+.sim-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1.15rem;
+  border-bottom: 1px solid var(--ivr-ink-line);
+}
+
+.sim-panel__title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #fff;
+  margin: 0;
+}
+
+/* Call state indicator. Amber only while a call is up. */
+.sim-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--ivr-font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--ivr-radius-pill);
+  border: 1px solid var(--ivr-ink-line);
+  color: var(--ivr-text-faint);
+  background: rgba(255, 255, 255, 0.03);
+}
+.sim-state__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.sim-state.is-live {
+  color: var(--ivr-live);
+  border-color: rgba(224, 138, 0, 0.35);
+  background: rgba(224, 138, 0, 0.1);
+}
+.sim-state.is-live .sim-state__dot {
+  animation: sim-pulse 1.6s ease-in-out infinite;
+}
+@keyframes sim-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+/* The prompt readout: what the caller is hearing right now. */
+.sim-screen {
+  padding: 1.25rem 1.15rem;
+  min-height: 148px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.sim-screen__eyebrow {
+  font-family: var(--ivr-font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ivr-text-faint);
+  margin: 0;
+}
+
+.sim-screen__prompt {
+  font-size: 1.0625rem;
+  line-height: 1.45;
+  color: #fff;
+  margin: 0;
+  font-weight: 400;
+}
+
+.sim-screen__detail {
+  font-size: 0.875rem;
+  color: var(--ivr-sidebar-text);
+  margin: 0;
+}
+
+.sim-screen__dest {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--ivr-font-mono);
+  font-size: 0.875rem;
+  color: var(--ivr-live);
+  background: rgba(224, 138, 0, 0.1);
+  border: 1px solid rgba(224, 138, 0, 0.3);
+  border-radius: 7px;
+  padding: 0.3rem 0.6rem;
+  align-self: flex-start;
+}
+
+/* Call log */
+.sim-log {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.sim-log__entry {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.4rem 1.15rem;
+  font-size: 0.8125rem;
+  color: var(--ivr-text-muted);
+}
+.sim-log__time {
+  font-family: var(--ivr-font-mono);
+  font-size: 0.75rem;
+  color: var(--ivr-text-faint);
+  flex: 0 0 auto;
+  padding-top: 0.05rem;
+}
+.sim-log__text {
+  margin: 0;
+}
+.sim-log__entry--input .sim-log__text {
+  color: var(--ivr-text);
+  font-weight: 500;
+}
+
+/* --------------------------------------------------------------------------
+   6. DTMF keypad
+   The signature element. Twelve keys, keyboard-operable, and each one plays
+   the genuine dual-tone frequency pair through the Web Audio API.
+   -------------------------------------------------------------------------- */
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+  padding: 1.15rem;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.keypad__key {
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  border: 1px solid var(--ivr-ink-line);
+  background: var(--ivr-ink-raised);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  transition: background-color 90ms ease, border-color 90ms ease, transform 90ms ease;
+  cursor: pointer;
+}
+.keypad__key:hover {
+  background: #1f2b3b;
+  border-color: #33455c;
+}
+.keypad__key:active,
+.keypad__key.is-pressed {
+  background: var(--ivr-live);
+  border-color: var(--ivr-live);
+  color: #1a1204;
+  transform: scale(0.96);
+}
+
+.keypad__digit {
+  font-family: var(--ivr-font-mono);
+  font-size: 1.35rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+/* The letter groups are what makes a keypad read as a telephone keypad. */
+.keypad__letters {
+  font-family: var(--ivr-font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.14em;
+  color: var(--ivr-text-faint);
+  min-height: 0.7rem;
+}
+.keypad__key:active .keypad__letters,
+.keypad__key.is-pressed .keypad__letters {
+  color: rgba(26, 18, 4, 0.7);
+}
+
+/* A key with no menu option behind it still dials; it just lands on the
+   invalid-option prompt, exactly as a real IVR would. */
+.keypad__key.is-mapped {
+  border-color: rgba(11, 122, 117, 0.55);
+}
+.keypad__key.is-mapped .keypad__digit {
+  color: #5eead4;
+}
+
+.keypad-hint {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--ivr-text-faint);
+  padding: 0 1.15rem 1.15rem;
+  margin: 0;
+}
+.keypad-hint kbd {
+  font-family: var(--ivr-font-mono);
+  background: var(--ivr-ink);
+  border: 1px solid var(--ivr-ink-line);
+  border-radius: 4px;
+  padding: 0.05rem 0.3rem;
+  color: var(--ivr-sidebar-text);
+  font-size: 0.7rem;
+}
+
+/* --------------------------------------------------------------------------
+   7. Option legend beside the keypad
+   -------------------------------------------------------------------------- */
+
+.option-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.option-list li + li {
+  border-top: 1px solid var(--ivr-line);
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.7rem 1.15rem;
+  background: none;
+  border: 0;
+  transition: background-color var(--ivr-transition);
+}
+.option-item:hover {
+  background: var(--ivr-surface-sunken);
+}
+.option-item.is-selected {
+  background: var(--ivr-live-tint);
+}
+
+.option-item__digit {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--ivr-neutral-bg);
+  border: 1px solid var(--ivr-neutral-line);
+  font-family: var(--ivr-font-mono);
+  font-weight: 500;
+  font-size: 0.875rem;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+.option-item.is-selected .option-item__digit {
+  background: var(--ivr-live);
+  border-color: var(--ivr-live);
+  color: #fff;
+}
+
+.option-item__label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
+}
+.option-item__dest {
+  font-size: 0.75rem;
+  color: var(--ivr-text-muted);
+  margin: 0;
+}
+.option-item__go {
+  margin-left: auto;
+  color: var(--ivr-text-faint);
+}
+
+/* ==========================================================================
+   Sync-to-Asterisk state
+   Sits beside the button in the page header, so the outcome appears where the
+   action was taken rather than only in a toast that fades.
+   ========================================================================== */
+
+.sync-state {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding-right: 0.25rem;
+  white-space: nowrap;
+}
+
+.sync-state--busy { color: var(--ivr-text-muted); }
+.sync-state--ok { color: var(--ivr-ok); }
+.sync-state--danger { color: var(--ivr-danger, #b42318); }

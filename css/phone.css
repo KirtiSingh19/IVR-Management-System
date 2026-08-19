@@ -1,0 +1,98 @@
+/* ==========================================================================
+   IVR Manager — Browser phone
+   The dial pad borrows the proportions of the Test IVR keypad so the two read
+   as the same control, but this one places real calls.
+   ========================================================================== */
+
+.phone-state {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  margin: 0 0 0.75rem;
+  min-height: 1.5rem;
+}
+
+.phone-duration {
+  font-family: var(--ivr-font-mono);
+  font-size: 0.875rem;
+  color: var(--ivr-text-muted);
+}
+
+/* Only shown while a call is ringing in. The pulse is what catches the eye when
+   the tab is visible but not being looked at. */
+.phone-incoming {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  margin-bottom: 0.85rem;
+  border-radius: var(--ivr-radius);
+  background: var(--ivr-ok-bg);
+  border: 1px solid var(--ivr-ok-line);
+  color: var(--ivr-ok);
+  font-size: 0.875rem;
+  font-weight: 500;
+  animation: phone-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes phone-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+/* Respect a user who has asked for less movement — a flashing panel is exactly
+   the kind of thing the preference exists for. */
+@media (prefers-reduced-motion: reduce) {
+  .phone-incoming { animation: none; }
+}
+
+.phone-number {
+  font-family: var(--ivr-font-mono);
+  font-size: 1.25rem;
+  letter-spacing: 0.05em;
+}
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  max-width: 18rem;
+  margin: 0 0 1rem;
+}
+
+.keypad__key {
+  aspect-ratio: 1 / 1;
+  border: 1px solid var(--ivr-line);
+  border-radius: var(--ivr-radius);
+  background: var(--ivr-surface);
+  font-family: var(--ivr-font-mono);
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: var(--ivr-text);
+  transition: background-color var(--ivr-transition), border-color var(--ivr-transition);
+}
+
+.keypad__key:hover {
+  background: var(--ivr-surface-sunken);
+  border-color: #d3dbe6;
+}
+
+.keypad__key:active {
+  background: var(--ivr-neutral-bg);
+}
+
+.phone-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Muted is a state, not an action, so the button stays visibly latched. */
+[data-phone-mute].is-active {
+  background: var(--ivr-danger-bg);
+  border-color: var(--ivr-danger);
+  color: var(--ivr-danger);
+}
+
+#phoneRemoteAudio {
+  display: none;
+}

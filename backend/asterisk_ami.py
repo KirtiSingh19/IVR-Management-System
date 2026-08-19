@@ -392,14 +392,50 @@ def extensions():
     return result
 
 
+# An AMI message carries at most AST_MAX_MANHEADERS headers — 128 in Asterisk.
+# Verified against this server rather than taken on trust: 30 append actions
+# (127 headers) succeed and 31 (131) fail with "Too many lines in message or
+# allocation failure", which is exactly what a whole dialplan in one message hit.
+#
+# The budget below leaves room for the five base headers (Action, ActionID,
+# SrcFilename, DstFilename, Reload) plus margin, so a long context name or an
+# extra field can never push a batch over.
+MAX_HEADERS_PER_MESSAGE = 116
+
+
+def _batch(actions):
+    """
+    Group actions into messages that stay under the header cap.
+
+    Each action is a dict of the fields it needs, so its cost in headers is just
+    how many keys it has: two for delcat/newcat, four for append.
+    """
+    batches, current, used = [], [], 0
+    for action in actions:
+        cost = len(action)
+        if current and used + cost > MAX_HEADERS_PER_MESSAGE:
+            batches.append(current)
+            current, used = [], 0
+        current.append(action)
+        used += cost
+    if current:
+        batches.append(current)
+    return batches
+
+
 def write_managed_file(connection, filename, contexts):
     """
-    Replace the managed dialplan file with `contexts`, in one UpdateConfig.
+    Replace the managed dialplan file with `contexts`.
 
-    Every existing category is deleted and the new ones appended in the same
-    request, so the file is never briefly empty and a failure leaves the previous
-    dialplan exactly as it was. Partial writes are the thing to avoid here: half a
-    menu is worse than none.
+    Sent as however many UpdateConfig messages the header cap requires, in order:
+    every delcat first, then each newcat followed by its appends. Ordering across
+    messages is safe because the file persists between them — a category created
+    in one message is there to be appended to in the next.
+
+    Batching costs the all-or-nothing write this used to have. A failure part way
+    through leaves the file inconsistent on disk, so the caller must not reload
+    after one: without a reload the previous dialplan stays loaded and calls are
+    unaffected, and the next successful sync rewrites the file wholesale.
 
     Only this file is touched. extensions.conf, pjsip.conf and every context the
     website does not own are never named in these actions.
@@ -413,27 +449,36 @@ def write_managed_file(connection, filename, contexts):
     except AsteriskError:
         connection.action("CreateConfig", Filename=filename, action_id="create-managed")
 
-    fields = {"Reload": "no"}  # Reloaded explicitly afterwards, so failures are separable.
-    index = 0
-
-    def add(**pairs):
-        nonlocal index
-        suffix = f"{index:06d}"
-        for key, value in pairs.items():
-            fields[f"{key}-{suffix}"] = value
-        index += 1
-
-    for name in dict.fromkeys(existing):
-        add(Action="delcat", Cat=name)
-
+    actions = [{"Action": "delcat", "Cat": name} for name in dict.fromkeys(existing)]
     for name, lines in contexts.items():
-        add(Action="newcat", Cat=name)
-        for key, value in lines:
-            add(Action="append", Cat=name, Var=key, Value=value)
+        actions.append({"Action": "newcat", "Cat": name})
+        actions.extend(
+            {"Action": "append", "Cat": name, "Var": key, "Value": value} for key, value in lines
+        )
 
-    connection.action("UpdateConfig", action_id="write-managed", SrcFilename=filename,
-                      DstFilename=filename, **fields)
-    return index
+    batches = _batch(actions)
+    for number, batch in enumerate(batches):
+        fields = {"Reload": "no"}  # Reloaded explicitly afterwards, so failures stay separable.
+        for index, action in enumerate(batch):
+            suffix = f"{index:06d}"
+            for key, value in action.items():
+                fields[f"{key}-{suffix}"] = value
+
+        try:
+            connection.action(
+                "UpdateConfig",
+                action_id=f"write-managed-{number}",
+                SrcFilename=filename,
+                DstFilename=filename,
+                **fields,
+            )
+        except AsteriskError as error:
+            raise AsteriskError(
+                f"Writing the dialplan failed on part {number + 1} of {len(batches)}: {error}. "
+                "Asterisk was not reloaded, so the previously loaded dialplan is still in effect."
+            ) from error
+
+    return len(actions)
 
 
 def reload_dialplan(connection):

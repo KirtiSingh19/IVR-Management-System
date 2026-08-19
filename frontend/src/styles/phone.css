@@ -1,0 +1,206 @@
+/* ==========================================================================
+   IVR Manager — Browser phone
+   The dial pad borrows the proportions of the Test IVR keypad so the two read
+   as the same control, but this one places real calls.
+   ========================================================================== */
+
+.phone-state {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  margin: 0 0 0.75rem;
+  min-height: 1.5rem;
+}
+
+.phone-duration {
+  font-family: var(--ivr-font-mono);
+  font-size: 0.875rem;
+  color: var(--ivr-text-muted);
+}
+
+/* Only shown while a call is ringing in. The pulse is what catches the eye when
+   the tab is visible but not being looked at. */
+.phone-incoming {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  margin-bottom: 0.85rem;
+  border-radius: var(--ivr-radius);
+  background: var(--ivr-ok-bg);
+  border: 1px solid var(--ivr-ok-line);
+  color: var(--ivr-ok);
+  font-size: 0.875rem;
+  font-weight: 500;
+  animation: phone-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes phone-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+/* Respect a user who has asked for less movement — a flashing panel is exactly
+   the kind of thing the preference exists for. */
+@media (prefers-reduced-motion: reduce) {
+  .phone-incoming { animation: none; }
+}
+
+.phone-number {
+  font-family: var(--ivr-font-mono);
+  font-size: 1.25rem;
+  letter-spacing: 0.05em;
+}
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  max-width: 18rem;
+  margin: 0 0 1rem;
+}
+
+.keypad__key {
+  aspect-ratio: 1 / 1;
+  border: 1px solid var(--ivr-line);
+  border-radius: var(--ivr-radius);
+  background: var(--ivr-surface);
+  font-family: var(--ivr-font-mono);
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: var(--ivr-text);
+  transition: background-color var(--ivr-transition), border-color var(--ivr-transition);
+}
+
+.keypad__key:hover {
+  background: var(--ivr-surface-sunken);
+  border-color: #d3dbe6;
+}
+
+.keypad__key:active {
+  background: var(--ivr-neutral-bg);
+}
+
+.phone-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Muted is a state, not an action, so the button stays visibly latched. */
+[data-phone-mute].is-active {
+  background: var(--ivr-danger-bg);
+  border-color: var(--ivr-danger);
+  color: var(--ivr-danger);
+}
+
+#phoneRemoteAudio {
+  display: none;
+}
+
+/* ==========================================================================
+   Sign in / sign out
+   Uses the palette and radii already defined in style.css, so the login screen
+   reads as part of the product rather than as a gate bolted in front of it.
+   ========================================================================== */
+
+.login-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: var(--ivr-surface-sunken);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 25rem;
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.login-hint {
+  margin: 1rem 0 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--ivr-text-muted);
+}
+
+.sidebar-user {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Sign out, at the right-hand end of the top bar.
+   Borrows .topbar-toggle's border, radius and height so the two read as a pair
+   rather than as a button someone bolted on afterwards. */
+.topbar-signout {
+  /* The search box has a fixed max-width and cannot push this over, so the
+     button claims the free space itself. */
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 38px;
+  padding: 0 0.7rem;
+  border: 1px solid var(--ivr-line);
+  border-radius: 8px;
+  background: var(--ivr-surface);
+  color: var(--ivr-text);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  flex: 0 0 auto;
+}
+.topbar-signout:hover {
+  background: var(--ivr-surface-sunken);
+}
+
+/* Below sm the label is dropped and the icon carries it, so the search box keeps
+   the room it needs on a phone. The title attribute still names the action. */
+@media (max-width: 575.98px) {
+  .topbar-signout__label {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Recording indicator
+   Shown on the dialer while a call is being captured. A pulsing red dot is the
+   convention for this, and the word is there too so it does not rely on colour.
+   ========================================================================== */
+
+.phone-recording {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ivr-danger);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.phone-recording__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ivr-danger);
+  animation: phone-recording-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes phone-recording-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phone-recording__dot { animation: none; }
+}
