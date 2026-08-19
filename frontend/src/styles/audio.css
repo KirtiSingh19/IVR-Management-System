@@ -1,0 +1,225 @@
+/* ==========================================================================
+   IVR Manager — audio files page
+   Upload area, file table cells, and the persistent playback bar.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Upload area
+   Accepts a click or a drop. The label is the control, so the whole area is
+   keyboard reachable through the file input it wraps.
+   -------------------------------------------------------------------------- */
+
+.dropzone {
+  border: 1.5px dashed #cbd5e1;
+  border-radius: var(--ivr-radius-lg);
+  background: var(--ivr-surface-sunken);
+  padding: 1.75rem 1.25rem;
+  text-align: center;
+  cursor: pointer;
+  display: block;
+  transition: border-color var(--ivr-transition), background-color var(--ivr-transition);
+}
+.dropzone:hover,
+.dropzone.is-dragover {
+  border-color: var(--ivr-signal);
+  background: var(--ivr-signal-tint);
+}
+.dropzone:focus-within {
+  border-color: var(--ivr-signal);
+  box-shadow: 0 0 0 3px rgba(var(--ivr-signal-rgb), 0.14);
+}
+
+.dropzone__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  background: var(--ivr-surface);
+  border: 1px solid var(--ivr-line);
+  color: var(--ivr-signal);
+  display: grid;
+  place-items: center;
+  font-size: 1.15rem;
+  margin: 0 auto 0.7rem;
+}
+
+.dropzone__title {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  margin: 0 0 0.2rem;
+}
+.dropzone__hint {
+  font-size: 0.8125rem;
+  color: var(--ivr-text-muted);
+  margin: 0;
+}
+
+/* The file input stays in the DOM for keyboard and assistive tech; it is only
+   visually hidden, never display:none. */
+.dropzone__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --------------------------------------------------------------------------
+   2. File cells
+   -------------------------------------------------------------------------- */
+
+.file-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.file-cell__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--ivr-neutral-bg);
+  color: var(--ivr-neutral);
+  display: grid;
+  place-items: center;
+  font-size: 0.95rem;
+  flex: 0 0 auto;
+  transition: background-color var(--ivr-transition), color var(--ivr-transition);
+}
+/* The row currently sounding is marked in the reserved live colour. */
+tr.is-playing .file-cell__icon {
+  background: var(--ivr-live-tint);
+  color: var(--ivr-live);
+}
+tr.is-playing {
+  background: rgba(224, 138, 0, 0.05);
+}
+
+.file-cell__name {
+  font-weight: 500;
+  font-family: var(--ivr-font-mono);
+  font-size: 0.8125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+.file-cell__meta {
+  font-size: 0.7rem;
+  color: var(--ivr-text-muted);
+}
+
+.format-chip {
+  font-family: var(--ivr-font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ivr-neutral);
+  background: var(--ivr-neutral-bg);
+  border: 1px solid var(--ivr-neutral-line);
+  border-radius: 5px;
+  padding: 0.12rem 0.4rem;
+}
+
+/* --------------------------------------------------------------------------
+   3. Playback bar
+   One bar for the whole page: only one file can sound at a time, so there is
+   only ever one set of transport controls.
+   -------------------------------------------------------------------------- */
+
+.player {
+  position: sticky;
+  bottom: 0;
+  z-index: 1020;
+  background: var(--ivr-ink);
+  border-radius: var(--ivr-radius-lg);
+  padding: 0.8rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  box-shadow: var(--ivr-shadow-lift);
+  margin-top: 1.25rem;
+}
+
+.player__button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--ivr-signal);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 1.1rem;
+  flex: 0 0 auto;
+  transition: background-color var(--ivr-transition);
+}
+.player__button:hover {
+  background: #12a39c;
+}
+
+/* Secondary transport control: same target size, quieter treatment. */
+.player__button--ghost {
+  background: transparent;
+  border: 1px solid var(--ivr-ink-line);
+  color: var(--ivr-sidebar-text);
+}
+.player__button--ghost:hover {
+  background: var(--ivr-ink-raised);
+  color: #fff;
+}
+
+.player__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.player__name {
+  font-family: var(--ivr-font-mono);
+  font-size: 0.8125rem;
+  color: #fff;
+  margin: 0 0 0.35rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player__track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--ivr-ink-line);
+  overflow: hidden;
+}
+.player__progress {
+  height: 100%;
+  width: 0;
+  background: var(--ivr-live);
+  border-radius: 2px;
+  transition: width 100ms linear;
+}
+
+.player__time {
+  font-family: var(--ivr-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.75rem;
+  color: var(--ivr-sidebar-text);
+  flex: 0 0 auto;
+}
+
+/* --------------------------------------------------------------------------
+   4. Session-only notice
+   Uploaded audio keeps its row across reloads, but the sound itself lives in
+   an in-memory object URL. This badge says so rather than failing silently.
+   -------------------------------------------------------------------------- */
+
+.session-note {
+  font-size: 0.75rem;
+  color: var(--ivr-warn);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}

@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Phone · IVR Manager</title>
+    <meta name="description" content="Register an extension in the browser and place calls through Asterisk." />
+    <link rel="icon" href="../assets/icons/favicon.svg" type="image/svg+xml" />
+
+    <link rel="stylesheet" href="../assets/vendor/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="../assets/vendor/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="../assets/vendor/tailwind.css" />
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/ivr.css" />
+    <link rel="stylesheet" href="../css/phone.css" />
+    <link rel="stylesheet" href="../css/responsive.css" />
+  </head>
+
+  <body data-page="phone">
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <div class="app-shell">
+      <div data-include="sidebar"></div>
+
+      <div class="app-content">
+        <div data-include="navbar"></div>
+
+        <main class="app-main" id="main">
+          <div class="page-header">
+            <div>
+              <nav aria-label="Breadcrumb">
+                <ol class="breadcrumb">
+                  <li class="breadcrumb-item"><a href="dashboard.html">Dashboard</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">Phone</li>
+                </ol>
+              </nav>
+              <h1 class="page-header__title">Phone</h1>
+              <p class="page-header__subtitle">
+                Register one of your existing extensions in this browser and place real calls
+                through Asterisk.
+              </p>
+            </div>
+          </div>
+
+          <!-- Shown when the browser will refuse microphone or WebRTC access. -->
+          <div class="alert alert-warning" role="alert" data-phone-blocked hidden>
+            <strong>This phone cannot run here.</strong>
+            <span data-phone-blocked-reason></span>
+          </div>
+
+          <div class="row g-3">
+            <!-- Connection ------------------------------------------------ -->
+            <div class="col-12 col-lg-5">
+              <section class="card h-100" aria-labelledby="phoneAccountHeading">
+                <div class="card-header">
+                  <div>
+                    <h2 id="phoneAccountHeading">SIP account</h2>
+                    <p class="card-header__hint">An extension already configured on Asterisk</p>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="mb-3">
+                    <label class="form-label" for="phoneServer">Asterisk server</label>
+                    <input
+                      class="form-control num"
+                      type="text"
+                      id="phoneServer"
+                      value="10.140.28.15:8089"
+                      autocomplete="off"
+                      aria-describedby="phoneServer-help"
+                    />
+                    <div class="form-text" id="phoneServer-help">
+                      Host and WSS port. The phone connects to <span class="num">wss://host:port/ws</span>.
+                    </div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label" for="phoneExtension">Extension</label>
+                    <input
+                      class="form-control num"
+                      type="text"
+                      id="phoneExtension"
+                      placeholder="9001"
+                      inputmode="numeric"
+                      autocomplete="off"
+                      aria-describedby="phoneExtension-help"
+                    />
+                    <div class="form-text" id="phoneExtension-help">
+                      Must be a WebRTC-enabled endpoint. 9001-9003 are; 1001-1004 are UDP only
+                      and will not register from a browser.
+                    </div>
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label" for="phonePassword">SIP password</label>
+                    <input
+                      class="form-control"
+                      type="password"
+                      id="phonePassword"
+                      autocomplete="current-password"
+                      aria-describedby="phonePassword-help"
+                    />
+                    <div class="form-text" id="phonePassword-help">
+                      Never stored. The server and extension are remembered; this is not.
+                    </div>
+                  </div>
+
+                  <div class="tw-flex tw-items-center tw-gap-2">
+                    <button class="btn btn-primary" type="button" data-phone-register>
+                      <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
+                      Register
+                    </button>
+                    <button class="btn btn-outline-secondary" type="button" data-phone-unregister hidden>
+                      <i class="bi bi-box-arrow-left" aria-hidden="true"></i>
+                      Unregister
+                    </button>
+                  </div>
+
+                  <hr class="tw-my-4" />
+
+                  <dl class="asterisk-facts">
+                    <div>
+                      <dt>Registration</dt>
+                      <dd data-phone-registration></dd>
+                    </div>
+                  </dl>
+                  <p class="tw-mt-2 tw-mb-0 tw-text-xs tw-text-muted" data-phone-registration-detail></p>
+                </div>
+              </section>
+            </div>
+
+            <!-- Dialer ---------------------------------------------------- -->
+            <div class="col-12 col-lg-7">
+              <section class="card h-100" aria-labelledby="phoneDialerHeading" data-phone-panel data-call-state="idle">
+                <div class="card-header">
+                  <div>
+                    <h2 id="phoneDialerHeading">Dialer</h2>
+                    <p class="card-header__hint">Call any extension on the PBX</p>
+                  </div>
+                  <span class="phone-duration num" data-phone-duration></span>
+                </div>
+                <div class="card-body">
+                  <p class="phone-state" data-phone-call-state></p>
+
+                  <div class="phone-incoming" data-phone-incoming hidden>
+                    <i class="bi bi-telephone-inbound-fill" aria-hidden="true"></i>
+                    Incoming call
+                  </div>
+
+                  <div class="input-group tw-mb-3">
+                    <input
+                      class="form-control num phone-number"
+                      type="text"
+                      id="phoneNumber"
+                      placeholder="1002"
+                      inputmode="numeric"
+                      autocomplete="off"
+                      aria-label="Number to call"
+                      data-phone-requires-registration
+                      disabled
+                    />
+                    <button class="btn btn-outline-secondary" type="button" data-phone-clear aria-label="Clear number">
+                      <i class="bi bi-backspace" aria-hidden="true"></i>
+                    </button>
+                  </div>
+
+                  <div class="keypad" data-phone-keypad role="group" aria-label="Dial pad"></div>
+
+                  <div class="phone-actions">
+                    <button class="btn btn-success" type="button" data-phone-call data-phone-requires-registration disabled>
+                      <i class="bi bi-telephone-fill" aria-hidden="true"></i>
+                      Call
+                    </button>
+                    <button class="btn btn-success" type="button" data-phone-answer hidden>
+                      <i class="bi bi-telephone-inbound-fill" aria-hidden="true"></i>
+                      Answer
+                    </button>
+                    <button class="btn btn-outline-danger" type="button" data-phone-reject hidden>
+                      <i class="bi bi-telephone-x-fill" aria-hidden="true"></i>
+                      Reject
+                    </button>
+                    <button class="btn btn-danger" type="button" data-phone-hangup hidden>
+                      <i class="bi bi-telephone-x-fill" aria-hidden="true"></i>
+                      Hang up
+                    </button>
+                    <button class="btn btn-outline-secondary" type="button" data-phone-mute aria-pressed="false" hidden>
+                      <i class="bi bi-mic-fill" aria-hidden="true"></i>
+                      <span data-phone-mute-label>Mute</span>
+                    </button>
+                  </div>
+
+                  <!-- SIP.js attaches the far end's audio here. -->
+                  <audio id="phoneRemoteAudio" autoplay></audio>
+                </div>
+              </section>
+            </div>
+          </div>
+        </main>
+
+        <div data-include="footer"></div>
+      </div>
+    </div>
+
+    <div data-include="modals"></div>
+
+    <script src="../assets/vendor/bootstrap/bootstrap.bundle.min.js" defer></script>
+    <script type="module" src="../js/app.js"></script>
+  </body>
+</html>

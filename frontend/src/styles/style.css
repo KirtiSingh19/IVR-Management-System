@@ -1,0 +1,1143 @@
+/* ==========================================================================
+   IVR Manager — base stylesheet
+   --------------------------------------------------------------------------
+   Load order matters and is the same on every page:
+     1. assets/vendor/bootstrap/bootstrap.min.css   components + reboot
+     2. assets/vendor/bootstrap-icons/…             icon font
+     3. assets/vendor/tailwind.css                  tw- prefixed utilities only
+     4. css/style.css                               this file: tokens + shell
+     5. css/<page>.css                              page-specific rules
+     6. css/responsive.css                          all breakpoint rules, last
+
+   Styling rule for the whole project:
+     Bootstrap owns anything with behaviour — modals, dropdowns, toasts,
+     offcanvas, tables, forms, buttons, pagination.
+     Tailwind owns layout and spacing only, and every class is prefixed tw-
+     so it can never collide with a Bootstrap utility of the same name.
+     This file owns the design tokens and the application shell.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Typefaces
+   IBM Plex Sans for the interface. IBM Plex Mono for anything you could dial
+   or measure: extensions, DTMF digits, durations, file sizes, timestamps.
+   -------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: 'IBM Plex Sans';
+  src: url('/assets/vendor/fonts/ibm-plex-sans-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IBM Plex Sans';
+  src: url('/assets/vendor/fonts/ibm-plex-sans-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IBM Plex Sans';
+  src: url('/assets/vendor/fonts/ibm-plex-sans-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('/assets/vendor/fonts/ibm-plex-mono-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('/assets/vendor/fonts/ibm-plex-mono-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* --------------------------------------------------------------------------
+   2. Design tokens
+   Every colour, radius and shadow in the project resolves to one of these.
+   Adding a raw hex value anywhere else is a bug.
+   -------------------------------------------------------------------------- */
+
+:root {
+  /* Surfaces */
+  --ivr-ink: #0f1722;          /* sidebar base */
+  --ivr-ink-raised: #17212f;   /* sidebar hover / active */
+  --ivr-ink-line: #253347;     /* sidebar dividers */
+  --ivr-paper: #f5f7fa;        /* application background */
+  --ivr-surface: #ffffff;      /* cards, tables, modals */
+  --ivr-surface-sunken: #f8fafc;
+  --ivr-line: #e4e9f0;         /* borders */
+
+  /* Text */
+  --ivr-text: #101828;
+  --ivr-text-muted: #5b6b80;
+  --ivr-text-faint: #8a99ad;
+  --ivr-sidebar-text: #a9b6c6;
+  --ivr-sidebar-text-strong: #ffffff;
+
+  /* Brand */
+  --ivr-signal: #0b7a75;       /* primary action */
+  --ivr-signal-hover: #096b67;
+  --ivr-signal-active: #075a56;
+  --ivr-signal-tint: #e6f3f2;
+  --ivr-signal-rgb: 11, 122, 117;
+
+  /* Reserved for the live / in-call state only. Never decorative. */
+  --ivr-live: #e08a00;
+  --ivr-live-tint: #fff6e5;
+
+  /* Status system — one fixed set of four, used by every badge */
+  --ivr-ok: #067647;
+  --ivr-ok-bg: #ecfdf3;
+  --ivr-ok-line: #abefc6;
+  --ivr-warn: #b54708;
+  --ivr-warn-bg: #fffaeb;
+  --ivr-warn-line: #fedf89;
+  --ivr-danger: #b42318;
+  --ivr-danger-bg: #fef3f2;
+  --ivr-danger-line: #fecdca;
+  --ivr-neutral: #475467;
+  --ivr-neutral-bg: #f2f4f7;
+  --ivr-neutral-line: #e4e7ec;
+
+  /* Type */
+  --ivr-font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ivr-font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  /* Shape */
+  --ivr-radius: 10px;
+  --ivr-radius-lg: 14px;
+  --ivr-radius-pill: 999px;
+  --ivr-shadow-card: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --ivr-shadow-lift: 0 8px 24px -6px rgba(16, 24, 40, 0.14);
+
+  /* Layout */
+  --ivr-sidebar-w: 264px;
+  --ivr-topbar-h: 62px;
+  --ivr-transition: 140ms ease;
+
+  /* Bootstrap component variables that our tokens must drive */
+  --bs-primary: #0b7a75;
+  --bs-primary-rgb: 11, 122, 117;
+  --bs-body-font-family: var(--ivr-font-sans);
+  --bs-body-color: var(--ivr-text);
+  --bs-body-bg: var(--ivr-paper);
+  --bs-border-color: var(--ivr-line);
+  --bs-link-color: var(--ivr-signal);
+  --bs-link-hover-color: var(--ivr-signal-hover);
+  --bs-link-color-rgb: 11, 122, 117;
+  --bs-link-hover-color-rgb: 9, 107, 103;
+  --bs-focus-ring-color: rgba(11, 122, 117, 0.25);
+}
+
+/* --------------------------------------------------------------------------
+   3. Base
+   -------------------------------------------------------------------------- */
+
+body {
+  font-family: var(--ivr-font-sans);
+  background-color: var(--ivr-paper);
+  color: var(--ivr-text);
+  font-size: 0.9375rem;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  color: var(--ivr-text);
+}
+
+/* The shell is injected by app.js, so the page is held back for one frame to
+   avoid a flash of unstyled chrome. app.js adds .is-ready when mounting ends. */
+body[data-page] {
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+body[data-page].is-ready {
+  opacity: 1;
+}
+
+/* Visible keyboard focus everywhere. Never remove this without a replacement. */
+:focus-visible {
+  outline: 2px solid var(--ivr-signal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.app-sidebar :focus-visible {
+  outline-color: #6ee7de;
+}
+
+/* Screen-reader-only text that becomes visible on focus (skip link). */
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -60px;
+  z-index: 1080;
+  padding: 0.6rem 1rem;
+  background: var(--ivr-signal);
+  color: #fff;
+  border-radius: var(--ivr-radius);
+  font-weight: 500;
+  transition: top var(--ivr-transition);
+}
+.skip-link:focus {
+  top: 12px;
+  color: #fff;
+}
+
+/* --------------------------------------------------------------------------
+   4. The numeric rule
+   Anything dialable or measurable is set in mono with tabular figures, so
+   columns of extensions and durations line up on the digit.
+   -------------------------------------------------------------------------- */
+
+.num {
+  font-family: var(--ivr-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  letter-spacing: -0.01em;
+}
+.num-ext {
+  font-family: var(--ivr-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  color: var(--ivr-text);
+  background: var(--ivr-neutral-bg);
+  border: 1px solid var(--ivr-neutral-line);
+  border-radius: 6px;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   5. Application shell
+   Mobile-first: the sidebar is a Bootstrap responsive offcanvas (.offcanvas-lg)
+   and becomes a static column at the lg breakpoint. All breakpoint rules for
+   the shell live in responsive.css.
+   -------------------------------------------------------------------------- */
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  align-items: stretch;
+}
+
+.app-content {
+  flex: 1 1 auto;
+  min-width: 0; /* lets wide tables scroll instead of stretching the layout */
+  display: flex;
+  flex-direction: column;
+}
+
+.app-main {
+  flex: 1 1 auto;
+  padding: 1.25rem;
+}
+
+/* --------------------------------------------------------------------------
+   6. Sidebar
+   -------------------------------------------------------------------------- */
+
+.app-sidebar {
+  background-color: var(--ivr-ink);
+  color: var(--ivr-sidebar-text);
+  width: var(--ivr-sidebar-w);
+  border-right: 1px solid var(--ivr-ink-line);
+}
+
+.app-sidebar .offcanvas-header {
+  border-bottom: 1px solid var(--ivr-ink-line);
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0 1.25rem;
+  height: var(--ivr-topbar-h);
+  border-bottom: 1px solid var(--ivr-ink-line);
+  text-decoration: none;
+  flex: 0 0 auto;
+}
+
+.sidebar-brand__mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: linear-gradient(150deg, var(--ivr-signal) 0%, #12a39c 100%);
+  color: #fff;
+  font-size: 1.05rem;
+  flex: 0 0 auto;
+}
+
+.sidebar-brand__name {
+  color: var(--ivr-sidebar-text-strong);
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.sidebar-brand__stage {
+  display: block;
+  font-family: var(--ivr-font-mono);
+  font-size: 0.6875rem;
+  color: var(--ivr-text-faint);
+  letter-spacing: 0.04em;
+}
+
+.sidebar-nav {
+  padding: 1rem 0.75rem;
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+
+.sidebar-nav__label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ivr-text-faint);
+  padding: 0 0.75rem;
+  margin: 1.25rem 0 0.45rem;
+}
+.sidebar-nav__label:first-child {
+  margin-top: 0;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  color: var(--ivr-sidebar-text);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 400;
+  position: relative;
+  transition: background-color var(--ivr-transition), color var(--ivr-transition);
+}
+.sidebar-link i {
+  font-size: 1.05rem;
+  width: 1.25rem;
+  text-align: center;
+  flex: 0 0 auto;
+}
+.sidebar-link:hover,
+.sidebar-link:focus-visible {
+  background-color: var(--ivr-ink-raised);
+  color: var(--ivr-sidebar-text-strong);
+}
+.sidebar-link.is-active {
+  background-color: var(--ivr-ink-raised);
+  color: var(--ivr-sidebar-text-strong);
+  font-weight: 500;
+}
+/* Left signal bar marks the current section. */
+.sidebar-link.is-active::before {
+  content: '';
+  position: absolute;
+  left: -0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  border-radius: 0 3px 3px 0;
+  background: var(--ivr-signal);
+}
+
+.sidebar-footer {
+  padding: 0.9rem 1.25rem;
+  border-top: 1px solid var(--ivr-ink-line);
+  font-size: 0.75rem;
+  color: var(--ivr-text-faint);
+  flex: 0 0 auto;
+}
+
+/* --------------------------------------------------------------------------
+   7. Topbar
+   -------------------------------------------------------------------------- */
+
+.app-topbar {
+  height: var(--ivr-topbar-h);
+  background: var(--ivr-surface);
+  border-bottom: 1px solid var(--ivr-line);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+}
+
+.topbar-toggle {
+  border: 1px solid var(--ivr-line);
+  background: var(--ivr-surface);
+  color: var(--ivr-text);
+  border-radius: 8px;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  font-size: 1.15rem;
+}
+.topbar-toggle:hover {
+  background: var(--ivr-surface-sunken);
+}
+
+.topbar-search {
+  position: relative;
+  max-width: 340px;
+  width: 100%;
+}
+.topbar-search i {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ivr-text-faint);
+  pointer-events: none;
+}
+.topbar-search .form-control {
+  padding-left: 2.25rem;
+  background: var(--ivr-surface-sunken);
+}
+
+/* Environment pill. States plainly that no server is attached yet. */
+.env-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--ivr-font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+  color: var(--ivr-neutral);
+  background: var(--ivr-neutral-bg);
+  border: 1px solid var(--ivr-neutral-line);
+  border-radius: var(--ivr-radius-pill);
+  padding: 0.25rem 0.65rem;
+  white-space: nowrap;
+}
+.env-pill__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ivr-text-faint);
+}
+
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: none;
+  border: 0;
+  padding: 0.25rem 0.4rem;
+  border-radius: 8px;
+  color: var(--ivr-text);
+}
+.topbar-user:hover {
+  background: var(--ivr-surface-sunken);
+}
+.topbar-user__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--ivr-signal-tint);
+  color: var(--ivr-signal);
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+  font-size: 0.8rem;
+  flex: 0 0 auto;
+}
+.topbar-user__name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.15;
+}
+.topbar-user__role {
+  font-size: 0.7rem;
+  color: var(--ivr-text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   8. Page header
+   -------------------------------------------------------------------------- */
+
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.page-header__title {
+  font-size: 1.5rem;
+  margin: 0.15rem 0 0.3rem;
+}
+.page-header__subtitle {
+  color: var(--ivr-text-muted);
+  margin: 0;
+  font-size: 0.9rem;
+  max-width: 62ch;
+}
+.page-header__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.breadcrumb {
+  --bs-breadcrumb-divider-color: var(--ivr-text-faint);
+  --bs-breadcrumb-item-padding-x: 0.5rem;
+  margin-bottom: 0;
+  font-size: 0.8125rem;
+}
+.breadcrumb-item a {
+  color: var(--ivr-text-muted);
+  text-decoration: none;
+}
+.breadcrumb-item a:hover {
+  color: var(--ivr-signal);
+}
+.breadcrumb-item.active {
+  color: var(--ivr-text-faint);
+}
+
+/* --------------------------------------------------------------------------
+   9. Cards
+   -------------------------------------------------------------------------- */
+
+.card {
+  --bs-card-bg: var(--ivr-surface);
+  --bs-card-border-color: var(--ivr-line);
+  --bs-card-border-radius: var(--ivr-radius-lg);
+  --bs-card-inner-border-radius: var(--ivr-radius-lg);
+  --bs-card-cap-bg: var(--ivr-surface);
+  box-shadow: var(--ivr-shadow-card);
+}
+
+.card-header {
+  border-bottom-color: var(--ivr-line);
+  padding: 0.95rem 1.15rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.card-header h2,
+.card-header h3 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin: 0;
+}
+.card-header__hint {
+  font-size: 0.8125rem;
+  color: var(--ivr-text-muted);
+  margin: 0.15rem 0 0;
+}
+
+/* --------------------------------------------------------------------------
+   10. Buttons
+   Bootstrap 5.3 buttons are variable-driven, so retinting is a matter of
+   redefining the component's own custom properties.
+   -------------------------------------------------------------------------- */
+
+.btn {
+  --bs-btn-font-size: 0.875rem;
+  --bs-btn-font-weight: 500;
+  --bs-btn-border-radius: 8px;
+  --bs-btn-padding-y: 0.5rem;
+  --bs-btn-padding-x: 0.9rem;
+  transition: background-color var(--ivr-transition), border-color var(--ivr-transition),
+    color var(--ivr-transition), box-shadow var(--ivr-transition);
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--ivr-signal);
+  --bs-btn-border-color: var(--ivr-signal);
+  --bs-btn-hover-bg: var(--ivr-signal-hover);
+  --bs-btn-hover-border-color: var(--ivr-signal-hover);
+  --bs-btn-active-bg: var(--ivr-signal-active);
+  --bs-btn-active-border-color: var(--ivr-signal-active);
+  --bs-btn-disabled-bg: var(--ivr-signal);
+  --bs-btn-disabled-border-color: var(--ivr-signal);
+  --bs-btn-focus-shadow-rgb: var(--ivr-signal-rgb);
+}
+
+.btn-outline-secondary {
+  --bs-btn-color: var(--ivr-text);
+  --bs-btn-border-color: var(--ivr-line);
+  --bs-btn-bg: var(--ivr-surface);
+  --bs-btn-hover-color: var(--ivr-text);
+  --bs-btn-hover-bg: var(--ivr-surface-sunken);
+  --bs-btn-hover-border-color: #d3dbe6;
+  --bs-btn-active-color: var(--ivr-text);
+  --bs-btn-active-bg: var(--ivr-neutral-bg);
+  --bs-btn-active-border-color: #d3dbe6;
+}
+
+.btn-danger {
+  --bs-btn-bg: var(--ivr-danger);
+  --bs-btn-border-color: var(--ivr-danger);
+  --bs-btn-hover-bg: #99190f;
+  --bs-btn-hover-border-color: #99190f;
+  --bs-btn-active-bg: #85150c;
+  --bs-btn-active-border-color: #85150c;
+}
+
+/* Square icon-only button used in table row actions. */
+.btn-icon {
+  --bs-btn-padding-x: 0;
+  --bs-btn-padding-y: 0;
+  width: 32px;
+  height: 32px;
+  display: inline-grid;
+  place-items: center;
+  font-size: 0.95rem;
+  color: var(--ivr-text-muted);
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 7px;
+}
+.btn-icon:hover {
+  background: var(--ivr-neutral-bg);
+  border-color: var(--ivr-neutral-line);
+  color: var(--ivr-text);
+}
+.btn-icon.btn-icon--danger:hover {
+  background: var(--ivr-danger-bg);
+  border-color: var(--ivr-danger-line);
+  color: var(--ivr-danger);
+}
+
+/* --------------------------------------------------------------------------
+   11. Status badges
+   Four tones only. .status-dot carries the meaning for anyone who cannot
+   distinguish the hues, alongside the always-present text label.
+   -------------------------------------------------------------------------- */
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.2rem 0.6rem 0.2rem 0.45rem;
+  border-radius: var(--ivr-radius-pill);
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.status__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: 0 0 auto;
+}
+.status--ok {
+  color: var(--ivr-ok);
+  background: var(--ivr-ok-bg);
+  border-color: var(--ivr-ok-line);
+}
+.status--warn {
+  color: var(--ivr-warn);
+  background: var(--ivr-warn-bg);
+  border-color: var(--ivr-warn-line);
+}
+.status--danger {
+  color: var(--ivr-danger);
+  background: var(--ivr-danger-bg);
+  border-color: var(--ivr-danger-line);
+}
+.status--neutral {
+  color: var(--ivr-neutral);
+  background: var(--ivr-neutral-bg);
+  border-color: var(--ivr-neutral-line);
+}
+
+/* --------------------------------------------------------------------------
+   12. Tables
+   -------------------------------------------------------------------------- */
+
+.table-card .card-body {
+  padding: 0;
+}
+
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--ivr-text);
+  --bs-table-border-color: var(--ivr-line);
+  margin-bottom: 0;
+  font-size: 0.875rem;
+}
+
+.table > thead th {
+  background: var(--ivr-surface-sunken);
+  color: var(--ivr-text-muted);
+  font-weight: 500;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.7rem 1rem;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--ivr-line);
+}
+
+.table > tbody td {
+  padding: 0.8rem 1rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--ivr-line);
+}
+
+.table > tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.table > tbody tr {
+  transition: background-color var(--ivr-transition);
+}
+.table > tbody tr:hover {
+  background-color: var(--ivr-surface-sunken);
+}
+
+/* Sortable column headers. aria-sort on the th carries the state for AT. */
+.th-sort {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+}
+.th-sort:hover {
+  color: var(--ivr-text);
+}
+.th-sort i {
+  font-size: 0.7rem;
+  opacity: 0.45;
+}
+[aria-sort='ascending'] .th-sort i,
+[aria-sort='descending'] .th-sort i {
+  opacity: 1;
+  color: var(--ivr-signal);
+}
+
+.cell-primary {
+  font-weight: 500;
+  color: var(--ivr-text);
+}
+.cell-muted {
+  color: var(--ivr-text-muted);
+}
+/* Long free text stays on one line rather than making rows different heights. */
+.cell-clamp {
+  display: block;
+  max-width: 34ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.15rem;
+  justify-content: flex-end;
+}
+
+/* --------------------------------------------------------------------------
+   13. Forms
+   -------------------------------------------------------------------------- */
+
+.form-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ivr-text);
+  margin-bottom: 0.35rem;
+}
+
+.form-control,
+.form-select {
+  /* Stated explicitly rather than inherited. Bootstrap defaults a field to
+     --bs-body-bg, which this theme points at the page background, so fields
+     would otherwise come out the same grey as the page they sit on. */
+  background-color: var(--ivr-surface);
+  border-color: var(--ivr-line);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--ivr-text);
+  transition: border-color var(--ivr-transition), box-shadow var(--ivr-transition);
+}
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--ivr-signal);
+  box-shadow: 0 0 0 3px rgba(var(--ivr-signal-rgb), 0.14);
+}
+.form-control::placeholder {
+  color: var(--ivr-text-faint);
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+  border-color: var(--ivr-danger);
+}
+.form-control.is-invalid:focus,
+.form-select.is-invalid:focus {
+  box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.14);
+}
+
+.invalid-feedback {
+  font-size: 0.8125rem;
+  color: var(--ivr-danger);
+}
+
+.form-text {
+  font-size: 0.8125rem;
+  color: var(--ivr-text-muted);
+}
+
+.form-check-input:checked {
+  background-color: var(--ivr-signal);
+  border-color: var(--ivr-signal);
+}
+.form-check-input:focus {
+  border-color: var(--ivr-signal);
+  box-shadow: 0 0 0 3px rgba(var(--ivr-signal-rgb), 0.14);
+}
+
+/* Field group with a leading hint chip, used for the extension input. */
+.input-group-text {
+  background: var(--ivr-surface-sunken);
+  border-color: var(--ivr-line);
+  color: var(--ivr-text-muted);
+  font-size: 0.8125rem;
+}
+
+.form-section {
+  border-top: 1px solid var(--ivr-line);
+  padding-top: 1.25rem;
+  margin-top: 1.25rem;
+}
+.form-section:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+  margin-top: 0;
+}
+.form-section__title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin: 0 0 0.2rem;
+}
+.form-section__hint {
+  font-size: 0.8125rem;
+  color: var(--ivr-text-muted);
+  margin: 0 0 1rem;
+}
+
+/* --------------------------------------------------------------------------
+   14. Toolbar (search + filters above a table)
+   -------------------------------------------------------------------------- */
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+  padding: 0.9rem 1.15rem;
+  border-bottom: 1px solid var(--ivr-line);
+}
+
+.toolbar__search {
+  position: relative;
+  flex: 1 1 260px;
+  min-width: 200px;
+}
+.toolbar__search i {
+  position: absolute;
+  left: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ivr-text-faint);
+  pointer-events: none;
+  font-size: 0.9rem;
+}
+.toolbar__search .form-control {
+  padding-left: 2.1rem;
+}
+
+.toolbar__select {
+  flex: 0 0 auto;
+  min-width: 150px;
+}
+
+.toolbar__count {
+  font-size: 0.8125rem;
+  color: var(--ivr-text-muted);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   15. Pagination
+   -------------------------------------------------------------------------- */
+
+.table-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1.15rem;
+  border-top: 1px solid var(--ivr-line);
+}
+
+.table-footer__status {
+  font-size: 0.8125rem;
+  color: var(--ivr-text-muted);
+}
+
+.pagination {
+  --bs-pagination-border-color: var(--ivr-line);
+  --bs-pagination-color: var(--ivr-text-muted);
+  --bs-pagination-font-size: 0.8125rem;
+  --bs-pagination-padding-x: 0.7rem;
+  --bs-pagination-padding-y: 0.35rem;
+  --bs-pagination-hover-bg: var(--ivr-surface-sunken);
+  --bs-pagination-hover-color: var(--ivr-text);
+  --bs-pagination-active-bg: var(--ivr-signal);
+  --bs-pagination-active-border-color: var(--ivr-signal);
+  --bs-pagination-focus-box-shadow: 0 0 0 3px rgba(var(--ivr-signal-rgb), 0.14);
+  --bs-pagination-focus-bg: var(--ivr-surface-sunken);
+  --bs-pagination-disabled-bg: var(--ivr-surface);
+  --bs-pagination-disabled-color: var(--ivr-text-faint);
+  margin-bottom: 0;
+}
+
+/* --------------------------------------------------------------------------
+   16. Empty state
+   An empty screen is an invitation to act, so it always carries one action.
+   -------------------------------------------------------------------------- */
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+}
+.empty-state__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--ivr-neutral-bg);
+  color: var(--ivr-text-faint);
+  display: grid;
+  place-items: center;
+  font-size: 1.35rem;
+  margin: 0 auto 0.9rem;
+}
+.empty-state__title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin: 0 0 0.3rem;
+}
+.empty-state__body {
+  font-size: 0.875rem;
+  color: var(--ivr-text-muted);
+  margin: 0 auto 1.1rem;
+  max-width: 46ch;
+}
+
+/* --------------------------------------------------------------------------
+   17. Loading skeletons
+   Shown while a repository read is in flight. Repositories are async today
+   against localStorage and will be async against HTTP in Stage 2, so this is
+   a real state, not a simulated one.
+   -------------------------------------------------------------------------- */
+
+.skeleton {
+  display: block;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #eef1f6 25%, #e2e8f0 37%, #eef1f6 63%);
+  background-size: 400% 100%;
+  animation: skeleton-sweep 1.3s ease infinite;
+  height: 0.85rem;
+}
+.skeleton--wide { width: 100%; }
+.skeleton--lg { height: 1.6rem; }
+/* Sized to the widest figure a stat tile is likely to hold. */
+.skeleton--num { width: 3ch; }
+
+@keyframes skeleton-sweep {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+.spinner-border {
+  --bs-spinner-border-width: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   18. Toasts
+   -------------------------------------------------------------------------- */
+
+.toast-host {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 1090;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: min(380px, calc(100vw - 2rem));
+}
+
+.toast {
+  --bs-toast-bg: var(--ivr-surface);
+  --bs-toast-border-color: var(--ivr-line);
+  --bs-toast-border-radius: var(--ivr-radius);
+  --bs-toast-box-shadow: var(--ivr-shadow-lift);
+  --bs-toast-font-size: 0.875rem;
+  border-left: 3px solid var(--ivr-neutral);
+  width: 100%;
+}
+.toast--ok { border-left-color: var(--ivr-ok); }
+.toast--danger { border-left-color: var(--ivr-danger); }
+.toast--warn { border-left-color: var(--ivr-warn); }
+
+.toast__body {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.8rem 0.9rem;
+}
+.toast__icon {
+  font-size: 1.05rem;
+  line-height: 1.2;
+  flex: 0 0 auto;
+}
+.toast--ok .toast__icon { color: var(--ivr-ok); }
+.toast--danger .toast__icon { color: var(--ivr-danger); }
+.toast--warn .toast__icon { color: var(--ivr-warn); }
+.toast--neutral .toast__icon { color: var(--ivr-neutral); }
+
+.toast__title {
+  font-weight: 500;
+  font-size: 0.875rem;
+  margin: 0;
+}
+.toast__text {
+  font-size: 0.8125rem;
+  color: var(--ivr-text-muted);
+  margin: 0.1rem 0 0;
+}
+
+/* --------------------------------------------------------------------------
+   19. Modals
+   -------------------------------------------------------------------------- */
+
+.modal-content {
+  border-color: var(--ivr-line);
+  border-radius: var(--ivr-radius-lg);
+  box-shadow: var(--ivr-shadow-lift);
+}
+.modal-header,
+.modal-footer {
+  border-color: var(--ivr-line);
+  padding: 1rem 1.25rem;
+}
+.modal-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+.modal-body {
+  padding: 1.25rem;
+}
+
+/* Icon plate used by the confirmation dialog. */
+.modal-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  font-size: 1.25rem;
+  flex: 0 0 auto;
+}
+.modal-icon--danger {
+  background: var(--ivr-danger-bg);
+  color: var(--ivr-danger);
+  border: 1px solid var(--ivr-danger-line);
+}
+.modal-icon--warn {
+  background: var(--ivr-warn-bg);
+  color: var(--ivr-warn);
+  border: 1px solid var(--ivr-warn-line);
+}
+
+/* --------------------------------------------------------------------------
+   20. Dropdowns
+   -------------------------------------------------------------------------- */
+
+.dropdown-menu {
+  --bs-dropdown-border-color: var(--ivr-line);
+  --bs-dropdown-border-radius: var(--ivr-radius);
+  --bs-dropdown-font-size: 0.875rem;
+  --bs-dropdown-link-active-bg: var(--ivr-signal-tint);
+  --bs-dropdown-link-active-color: var(--ivr-signal);
+  --bs-dropdown-link-hover-bg: var(--ivr-surface-sunken);
+  --bs-dropdown-padding-y: 0.35rem;
+  --bs-dropdown-item-padding-y: 0.45rem;
+  box-shadow: var(--ivr-shadow-lift);
+}
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+.dropdown-item--danger {
+  color: var(--ivr-danger);
+}
+.dropdown-item--danger:hover,
+.dropdown-item--danger:focus {
+  background: var(--ivr-danger-bg);
+  color: var(--ivr-danger);
+}
+.dropdown-header {
+  font-size: 0.75rem;
+  color: var(--ivr-text-faint);
+}
+
+/* --------------------------------------------------------------------------
+   21. Motion preference
+   Honour the OS setting. Nothing here is load-bearing.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

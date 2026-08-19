@@ -1,0 +1,317 @@
+/* ==========================================================================
+   IVR Manager — dashboard page
+   Stat tiles, status overview, quick actions, recent activity lists.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Stat tiles
+   The number is the content, so it gets the mono face at display size and the
+   label sits above it as a quiet caption.
+   -------------------------------------------------------------------------- */
+
+.stat-card {
+  background: var(--ivr-surface);
+  border: 1px solid var(--ivr-line);
+  border-radius: var(--ivr-radius-lg);
+  padding: 1.1rem 1.15rem;
+  box-shadow: var(--ivr-shadow-card);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  transition: box-shadow var(--ivr-transition), border-color var(--ivr-transition);
+}
+.stat-card:hover {
+  box-shadow: var(--ivr-shadow-lift);
+  border-color: #d6dee9;
+}
+
+.stat-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.stat-card__label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ivr-text-muted);
+  margin: 0;
+}
+
+.stat-card__icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  font-size: 1rem;
+  flex: 0 0 auto;
+}
+.stat-card__icon--signal {
+  background: var(--ivr-signal-tint);
+  color: var(--ivr-signal);
+}
+.stat-card__icon--ok {
+  background: var(--ivr-ok-bg);
+  color: var(--ivr-ok);
+}
+.stat-card__icon--neutral {
+  background: var(--ivr-neutral-bg);
+  color: var(--ivr-neutral);
+}
+.stat-card__icon--warn {
+  background: var(--ivr-warn-bg);
+  color: var(--ivr-warn);
+}
+
+.stat-card__value {
+  font-family: var(--ivr-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 2rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--ivr-text);
+}
+
+.stat-card__foot {
+  font-size: 0.8125rem;
+  color: var(--ivr-text-muted);
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   2. Status overview
+   A proportional bar rather than a pie: two values are being compared, and a
+   bar makes the ratio readable at a glance without a legend lookup.
+   -------------------------------------------------------------------------- */
+
+.status-bar {
+  display: flex;
+  height: 10px;
+  border-radius: var(--ivr-radius-pill);
+  overflow: hidden;
+  background: var(--ivr-neutral-bg);
+  margin-bottom: 1rem;
+}
+.status-bar__segment {
+  height: 100%;
+  transition: width 260ms ease;
+}
+.status-bar__segment--ok { background: var(--ivr-ok); }
+.status-bar__segment--idle { background: #cbd5e1; }
+
+.status-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.status-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.875rem;
+}
+.status-legend__swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+.status-legend__swatch--ok { background: var(--ivr-ok); }
+.status-legend__swatch--idle { background: #cbd5e1; }
+.status-legend__label {
+  color: var(--ivr-text-muted);
+}
+.status-legend__value {
+  margin-left: auto;
+  font-family: var(--ivr-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+.status-legend__share {
+  color: var(--ivr-text-faint);
+  font-size: 0.8125rem;
+  font-family: var(--ivr-font-mono);
+  min-width: 4ch;
+  text-align: right;
+}
+
+/* --------------------------------------------------------------------------
+   3. Quick actions
+   -------------------------------------------------------------------------- */
+
+.quick-action {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--ivr-line);
+  border-radius: var(--ivr-radius);
+  background: var(--ivr-surface);
+  color: var(--ivr-text);
+  text-decoration: none;
+  transition: border-color var(--ivr-transition), background-color var(--ivr-transition),
+    transform var(--ivr-transition);
+}
+.quick-action:hover {
+  border-color: var(--ivr-signal);
+  background: var(--ivr-signal-tint);
+  color: var(--ivr-text);
+}
+.quick-action:active {
+  transform: translateY(1px);
+}
+.quick-action__icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--ivr-signal-tint);
+  color: var(--ivr-signal);
+  display: grid;
+  place-items: center;
+  font-size: 1rem;
+  flex: 0 0 auto;
+}
+.quick-action:hover .quick-action__icon {
+  background: var(--ivr-signal);
+  color: #fff;
+}
+.quick-action__title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: block;
+  line-height: 1.25;
+}
+.quick-action__hint {
+  font-size: 0.75rem;
+  color: var(--ivr-text-muted);
+}
+.quick-action__chevron {
+  margin-left: auto;
+  color: var(--ivr-text-faint);
+  font-size: 0.9rem;
+}
+
+/* --------------------------------------------------------------------------
+   4. Recent activity lists
+   -------------------------------------------------------------------------- */
+
+.recent-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.recent-list li + li {
+  border-top: 1px solid var(--ivr-line);
+}
+
+.recent-item {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.75rem 1.15rem;
+  text-decoration: none;
+  color: inherit;
+  transition: background-color var(--ivr-transition);
+}
+.recent-item:hover {
+  background: var(--ivr-surface-sunken);
+  color: inherit;
+}
+
+.recent-item__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--ivr-neutral-bg);
+  color: var(--ivr-neutral);
+  display: grid;
+  place-items: center;
+  font-size: 0.9rem;
+  flex: 0 0 auto;
+}
+
+.recent-item__body {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.recent-item__title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.recent-item__meta {
+  font-size: 0.75rem;
+  color: var(--ivr-text-muted);
+  margin: 0.1rem 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.recent-item__sep {
+  color: var(--ivr-line);
+}
+
+/* ==========================================================================
+   Asterisk panel
+   The read-only view of the PBX. Deliberately plain: it reports facts the
+   server gave us, and never shows a credential.
+   ========================================================================== */
+
+.asterisk-facts {
+  display: grid;
+  /* Four facts side by side where there is room, stacking to two and then one
+     rather than squeezing an IP address into a column too narrow for it. */
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1rem 1.5rem;
+  margin: 0;
+}
+
+.asterisk-facts dt {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ivr-text-muted);
+  margin: 0 0 0.25rem;
+}
+
+.asterisk-facts dd {
+  font-size: 0.9375rem;
+  margin: 0;
+}
+
+.asterisk-extensions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.asterisk-extensions li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--ivr-line);
+  border-radius: 0.5rem;
+  background: var(--ivr-surface-sunken);
+  font-size: 0.8125rem;
+}
+
+.asterisk-extensions__meta {
+  font-size: 0.75rem;
+  color: var(--ivr-text-muted);
+}

@@ -16,6 +16,7 @@
 import { qs, qsa, formatBytes } from './utils.js';
 import { seedIfEmpty, clearLocalBackup, isPersistent, usageBytes } from './storage.js';
 import { runMigration } from './migrate.js';
+import { resume as resumePhone } from './phone-service.js';
 import { toast, confirmDialog } from './ui.js';
 
 /**
@@ -32,6 +33,7 @@ const NAV_FOR_PAGE = {
   'edit-ivr': 'ivr-list', // editing is part of managing the list
   'audio-files': 'audio-files',
   'test-ivr': 'test-ivr',
+  phone: 'phone',
 };
 
 /**
@@ -45,6 +47,7 @@ const CONTROLLERS = {
   'edit-ivr': () => import('./ivr.js'),
   'audio-files': () => import('./audio.js'),
   'test-ivr': () => import('./test-ivr.js'),
+  phone: () => import('./phone.js'),
 };
 
 /* ==========================================================================
@@ -168,6 +171,11 @@ async function boot() {
   restoreGlobalSearch();
   reportStorageState();
   wireGlobalActions();
+
+  // The phone lives outside any one page. Started on every page so a registered
+  // extension stays registered while the rest of the app is used — see
+  // js/phone-service.js for why that cannot be done from phone.html alone.
+  resumePhone();
 
   await migration;
 

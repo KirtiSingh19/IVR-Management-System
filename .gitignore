@@ -39,3 +39,7 @@ backend/uploads/
 #   assets/audio/     generated demo prompts
 # Both are build outputs, but the container has no build step, so they are
 # part of the source tree.
+
+# React frontend build artefacts. src/ is committed; these are not.
+frontend/node_modules/
+frontend/dist/

@@ -1,0 +1,258 @@
+/* ==========================================================================
+   IVR Manager — responsive rules
+   Loaded last. Every breakpoint rule in the project lives here so there is a
+   single place to reason about layout across sizes.
+
+   Breakpoints follow Bootstrap's, so custom rules and Bootstrap's own grid
+   change over at the same widths:
+     sm 576   md 768   lg 992   xl 1200   xxl 1400
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Sidebar
+   Below lg the sidebar is a Bootstrap responsive offcanvas (.offcanvas-lg) and
+   Bootstrap positions it. At lg and above it becomes a static, sticky column.
+   -------------------------------------------------------------------------- */
+
+@media (min-width: 992px) {
+  .app-sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    flex: 0 0 var(--ivr-sidebar-w);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Above its breakpoint, Bootstrap's responsive offcanvas resets itself with
+     `background-color: transparent !important` and `border: 0 !important` so
+     that it blends into whatever page it sits on. That is the right default
+     for a generic drawer and the wrong one here, where the sidebar is a dark
+     column in its own right.
+
+     Overriding !important needs !important, and the extra class selector wins
+     on specificity against Bootstrap's single `.offcanvas-lg`. Without this,
+     the sidebar renders on the light page background and its white text
+     becomes unreadable at desktop widths — while still looking correct on a
+     phone, where the rule does not apply. */
+  .app-sidebar.offcanvas-lg {
+    background-color: var(--ivr-ink) !important;
+    border-right: 1px solid var(--ivr-ink-line) !important;
+  }
+
+  /* The offcanvas close button is only meaningful in the drawer. */
+  .app-sidebar .offcanvas-header {
+    display: none;
+  }
+
+  /* The hamburger is redundant once the sidebar is permanently visible. */
+  .topbar-toggle {
+    display: none;
+  }
+
+  .app-main {
+    padding: 1.75rem;
+  }
+}
+
+/* While the offcanvas is in drawer mode it supplies its own header, so the
+   inline brand block would duplicate it. */
+@media (max-width: 991.98px) {
+  .app-sidebar .sidebar-brand {
+    display: none;
+  }
+
+  .app-sidebar {
+    --bs-offcanvas-width: 272px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   2. Topbar
+   -------------------------------------------------------------------------- */
+
+/* The global search is a convenience, not the only way to search; each page
+   has its own search box. It is dropped first when width runs out. */
+@media (max-width: 767.98px) {
+  .topbar-search {
+    display: none;
+  }
+
+  .env-pill {
+    display: none;
+  }
+
+  .topbar-user__text {
+    display: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   3. Page chrome
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 575.98px) {
+  .app-main {
+    padding: 1rem;
+  }
+
+  .page-header {
+    margin-bottom: 1rem;
+  }
+
+  .page-header__title {
+    font-size: 1.25rem;
+  }
+
+  /* Header actions go full width so they are comfortable thumb targets. */
+  .page-header__actions {
+    width: 100%;
+  }
+  .page-header__actions .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   4. Tables
+   Tables stay tables and scroll sideways inside their card. The identity and
+   action columns are pinned in place so a row is never unidentifiable and is
+   always actionable, however far it is scrolled.
+   -------------------------------------------------------------------------- */
+
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 767.98px) {
+  .table {
+    min-width: 720px;
+  }
+
+  .toolbar__count {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .toolbar__select {
+    flex: 1 1 auto;
+  }
+
+  .table-footer {
+    justify-content: center;
+  }
+  .table-footer__status {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   5. Dialplan tree and keypad
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 767.98px) {
+  .dialplan {
+    --dialplan-gap: 0.85rem;
+    --dialplan-drop: 1.5rem;
+    padding: 1.15rem 0.85rem 1.35rem;
+  }
+
+  .dp-node {
+    min-width: 108px;
+    padding: 0.6rem;
+  }
+  .dp-node--root {
+    min-width: 140px;
+  }
+
+  .keypad {
+    max-width: 100%;
+    gap: 0.5rem;
+  }
+}
+
+/* Very narrow screens: cap the key size so the pad does not dominate the page. */
+@media (max-width: 400px) {
+  .keypad {
+    max-width: 280px;
+  }
+  .keypad__digit {
+    font-size: 1.15rem;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   6. Toasts
+   Full width on phones so the message is readable at a glance.
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 575.98px) {
+  .toast-host {
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    max-width: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   7. Detail lists and forms
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 575.98px) {
+  .detail-list {
+    grid-template-columns: 1fr;
+    gap: 0.15rem 0;
+  }
+  .detail-list dd {
+    margin-bottom: 0.75rem;
+  }
+
+  .flow-row {
+    flex-wrap: wrap;
+  }
+  .flow-row__actions {
+    margin-left: auto;
+  }
+
+  .player {
+    flex-wrap: wrap;
+  }
+  .player__body {
+    order: 3;
+    width: 100%;
+    flex-basis: 100%;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   8. Print
+   Useful for handing a dialplan to someone in a meeting.
+   -------------------------------------------------------------------------- */
+
+@media print {
+  .app-sidebar,
+  .app-topbar,
+  .page-header__actions,
+  .toolbar,
+  .table-footer,
+  .player,
+  .toast-host,
+  .keypad,
+  .keypad-hint {
+    display: none !important;
+  }
+
+  .app-main {
+    padding: 0;
+  }
+
+  .card {
+    box-shadow: none;
+    border-color: #cbd5e1;
+    break-inside: avoid;
+  }
+}

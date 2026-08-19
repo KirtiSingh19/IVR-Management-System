@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="IVR Manager">
+  <!-- A menu tree: one root branching to three options, which is what an IVR is. -->
+  <rect width="32" height="32" rx="7" fill="#0F1722" />
+  <g stroke="#0B7A75" stroke-width="1.8" stroke-linecap="round" fill="none">
+    <path d="M16 9v4" />
+    <path d="M8 15h16" />
+    <path d="M8 15v3M16 15v3M24 15v3" />
+  </g>
+  <circle cx="16" cy="8" r="2.6" fill="#12A39C" />
+  <circle cx="8" cy="20" r="2.2" fill="#E08A00" />
+  <circle cx="16" cy="20" r="2.2" fill="#94A3B8" />
+  <circle cx="24" cy="20" r="2.2" fill="#94A3B8" />
+</svg>
